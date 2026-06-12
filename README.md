@@ -8,20 +8,31 @@ The key design principle is simple: each perception or radio module writes a **l
 
 ## 1. What this project does
 
-The demo integrates:
+The demo integrates a real Unitree Go2, a simulated Go2 in Isaac Sim, a ROS 2 control stack, a patrol controller, a visual digital-twin sync script, and several independent sensing modules. The patrol controller uses camera, CSI/mmWave and LiDAR JSON files to decide whether the robot must stop for safety. The Isaac Sim sync script consumes the same state files to update the visual digital twin.
 
-- a real Unitree Go2 controlled through ROS 2;
-- a simulated Go2 in Isaac Sim;
-- a patrol controller that records and replays a route;
-- safety-stop logic based on camera, CSI/mmWave and LiDAR state files;
-- a visual sync script that updates Isaac Sim with robot pose, legs, LiDAR cloud and person visibility;
-- two execution architectures:
-  - **PC/local mode**, where the main PC runs most modules;
-  - **Raspi + MikroTik mode**, where a Raspberry Pi sends camera/MP4/iperf streams through a 60 GHz AP/STA link and OpenWrt provides CSI measurements.
+The project supports two main execution architectures:
+
+- **No-Raspi / PC-local architecture**: the PC/Spark host runs the main modules and the cameras are connected directly by USB. The MikroTik AP/STA devices are managed through Ethernet and communicate over the 60 GHz radio link.
+- **Raspi + MikroTik architecture**: a Raspberry Pi acts as a remote sender for camera, MP4 video and `iperf` traffic. This traffic crosses the AP13–STA12 60 GHz link and reaches the PC/Spark host.
 
 ---
 
-## 2. Repository layout
+## 2. Documentation map
+
+| Goal | Read this |
+|---|---|
+| Understand and run the whole project | This `README.md` |
+| Main demo scripts and module-by-module execution | [`go2_dt/README.md`](go2_dt/README.md) |
+| ROS 2, DDS, Go2 SDK, patrol and Isaac sync | [`go2_dt/ros2_ws/README.md`](go2_dt/ros2_ws/README.md) |
+| Required JSON fields and how to add a new sensor | [`docs/json_contracts.md`](docs/json_contracts.md) |
+| MikroTik/OpenWrt CSI, AP13/STA12 and Raspi sender | [`docs/mikrotik_csi_openwrt.md`](docs/mikrotik_csi_openwrt.md) |
+| Official scripts vs debug/legacy scripts | [`docs/scripts_overview.md`](docs/scripts_overview.md) |
+| Python/system dependencies | [`requirements/README.md`](requirements/README.md) |
+| Isaac assets and expected prims | [`go2_assets/README.md`](go2_assets/README.md) |
+
+---
+
+## 3. Repository layout
 
 ```text
 .
@@ -31,6 +42,11 @@ The demo integrates:
 │   ├── mikrotik_csi_openwrt.md
 │   ├── scripts_overview.md
 │   └── images/
+├── requirements/
+│   ├── README.md
+│   ├── requirements-host.txt
+│   ├── requirements-csi.txt
+│   └── requirements-yolo.txt
 ├── go2_assets/
 │   └── README.md
 └── go2_dt/
@@ -50,15 +66,17 @@ The demo integrates:
 
 ---
 
-## 3. Architectures
+## 4. Architectures
 
-### 3.1 Architecture without Raspi
+### 4.1 Architecture without Raspi
 
-This mode is intended for local development if you do not want to deploy the Raspberry Pi architecture. In this setup, the PC/Spark host is directly connected to the MikroTik AP/STA management network through Ethernet and to the YOLO/AprilTag cameras through USB.
+This mode is intended for local development when you do not want to deploy the Raspberry Pi architecture. In this setup, the PC/Spark host is directly connected to the MikroTik AP/STA management network through Ethernet and to the YOLO/AprilTag cameras through USB. The long Ethernet and USB cables replace the Raspberry Pi as a remote sender.
 
 ![Architecture without Raspi](docs/images/architecture_without_raspi.png)
 
 *Figure 1. No-Raspi architecture. The PC/Spark host manages both MikroTik devices through the Ethernet management network `192.168.1.0/24`, while AP13 and STA12 establish the 60 GHz radio link through `wlan0` using the `10.10.10.0/24` subnet. The YOLO and AprilTag cameras are connected directly to the PC through USB.*
+
+Logical software flow:
 
 ```mermaid
 flowchart LR
@@ -83,66 +101,45 @@ flowchart LR
     Sync --> Isaac[Isaac Sim Digital Twin]
 ```
 
+### 4.2 Architecture with Raspi + MikroTik 60 GHz
 
-### 3.2 Architecture with Raspi + MikroTik 60 GHz
-
-This mode is used when the demo includes the Raspi
+This mode is used when the demo includes the Raspberry Pi as a remote sender. The Raspberry Pi sends camera, MP4 and `iperf` traffic through the AP13–STA12 60 GHz link. The PC/Spark host receives those streams and runs the ROS 2 stack, YOLO receiver, CSI predictor and Isaac Sim digital twin.
 
 ![Architecture with Raspi](docs/images/architecture_with_raspi.png)
 
 *Figure 2. Raspi-based architecture. The Raspberry Pi acts as a remote sender for camera, MP4 video and `iperf` traffic. The traffic crosses the AP13–STA12 60 GHz link and reaches the PC/Spark host, where the receivers, YOLO pipeline, CSI predictor, ROS 2 stack and Isaac Sim digital twin are executed.*
 
-```mermaid
-flowchart LR
-    Raspi[Raspberry Pi sender] -->|Camera RTP UDP 6000| STA[MikroTik STA12]
-    Raspi -->|MP4 RTP UDP 6002| STA
-    Raspi -->|iperf TCP/UDP 5201| STA
-
-    STA <-->|60 GHz wlan0| AP[MikroTik AP13]
-    AP --> Spark[Spark / Main PC]
-
-    Spark --> RX[MP4 RX + YOLO RX + Throughput]
-    Spark --> CSI[CSI predictor]
-    Spark --> ROS[ROS 2 + Go2 SDK + Patrol]
-    Spark --> Isaac[Isaac Sim]
-
-    STA -->|CSI vendor recv + SSH append| CSIInput[live_csi_stream.txt]
-    CSIInput --> CSI
-    CSI --> CSIJSON[live_prediction_state.json]
-    RX --> CameraJSON[live_camera_state.json]
-    ROS --> PatrolJSON[live_patrol_state.json]
-    ROS --> LidarJSON[live_lidar_state.json]
-
-    CameraJSON --> ROS
-    CSIJSON --> ROS
-    LidarJSON --> ROS
-    CameraJSON --> Isaac
-    CSIJSON --> Isaac
-    LidarJSON --> Isaac
-    PatrolJSON --> Isaac
-```
-
 ---
 
-## 4. Requirements
+## 5. Requirements
 
-### Host / Spark / main PC
+### 5.1 Host / Spark / main PC
 
 - Ubuntu 22.04/24.04 recommended.
 - NVIDIA GPU with Docker GPU support.
 - Docker and NVIDIA Container Toolkit.
-- NVIDIA Isaac Sim Docker image:
-
-```bash
-docker pull nvcr.io/nvidia/isaac-sim:5.1.0
-```
-
+- NVIDIA Isaac Sim Docker image: `nvcr.io/nvidia/isaac-sim:5.1.0`.
 - ROS 2 Jazzy.
 - Python 3.
 - `colcon`, `rosdep`, `rclpy`, OpenCV, GStreamer, `iperf3`, `tcpdump`, `v4l2-ctl`.
 - X11 graphical session with `gnome-terminal` or `xterm`.
 
-### Robot
+Install common system packages:
+
+```bash
+sudo apt update
+sudo apt install -y \
+  python3-pip python3-venv python3-colcon-common-extensions \
+  python3-rosdep git curl unzip \
+  gstreamer1.0-tools gstreamer1.0-plugins-base \
+  gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+  gstreamer1.0-plugins-ugly gstreamer1.0-libav \
+  iperf3 tcpdump v4l-utils xterm
+```
+
+Python environments are described in [`requirements/README.md`](requirements/README.md).
+
+### 5.2 Robot
 
 Default:
 
@@ -151,19 +148,23 @@ ROBOT_IP=192.168.12.1
 CONN_TYPE=webrtc
 ```
 
-###Mikrotik
+### 5.3 MikroTik/OpenWrt
 
-- MikroTik/OpenWrt AP and STA reachable by SSH.
+- AP13 management IP: `192.168.1.13`.
+- STA12 management IP: `192.168.1.12`.
+- AP13 radio IP: `10.10.10.1`.
+- STA12 radio IP: `10.10.10.2`.
 - CSI scripts installed under `/root/scripts_csi_dog/`.
 
-### Optional Raspi mode
+### 5.4 Optional Raspi mode
 
 - Raspberry Pi reachable by SSH.
+- Raspi demo IP commonly `172.16.13.100`.
 - Raspi sender installed under `/home/system/raspi_60ghz_demo/`.
 
 ---
 
-## 5. Quick build
+## 6. Build ROS 2 workspace
 
 ```bash
 cd /home/nextnet/AlbertoDir/go2_dt/ros2_ws
@@ -179,23 +180,163 @@ source install/setup.bash
 
 ---
 
-## 6. Quick execution
+## 7. Run without Raspi
 
-### Isaac Sim
+### Step 1: Deploy the physical setup
 
-Open the USD stage:
+Use Figure 1:
+
+- PC/Spark connected to `192.168.1.0/24`.
+- AP13 reachable as `192.168.1.13`.
+- STA12 reachable as `192.168.1.12`.
+- AP13/STA12 radio subnet `10.10.10.0/24`.
+- YOLO USB camera connected to the PC.
+- AprilTag USB camera connected to the PC.
+
+### Step 2: Verify MikroTik link
+
+```bash
+ssh root@192.168.1.13 'echo AP_OK'
+ssh root@192.168.1.12 'echo STA_OK'
+
+ssh root@192.168.1.12 'iw dev wlan0 link'
+ssh root@192.168.1.12 'ping -I wlan0 -c 3 10.10.10.1'
+ssh root@192.168.1.13 'ping -I wlan0 -c 3 10.10.10.2'
+```
+
+### Step 3: Run the current full stack
+
+```bash
+cd /home/nextnet/AlbertoDir/go2_dt
+./run_full_demo_current.sh
+```
+
+This launches Isaac Sim, Go2 SDK, SLAM live visual, local USB YOLO, CSI predictor, throughput plot, radio/video/iperf helpers and `zone_loop_patrol_v3.py`.
+
+### Step 4: Stop
+
+```bash
+cd /home/nextnet/AlbertoDir/go2_dt
+./stop_full_demo_current.sh
+```
+
+---
+
+## 8. Run with Raspi
+
+### Step 1: Deploy the physical setup
+
+Use Figure 2. The Raspberry Pi sends:
+
+- camera RTP on UDP `6000`;
+- MP4 RTP on UDP `6002`;
+- `iperf` traffic on port `5201`.
+
+### Step 2: Configure AP13/STA12/Raspi
+
+```bash
+cd /home/nextnet/AlbertoDir/go2_dt
+
+RASPI_MGMT_HOST=10.39.251.226 \
+RASPI_USER=nextnet \
+./tests_experiments/raspi_60ghz_ap13_sta12/setup_ap13_sta12_link_raspi_wifi.sh
+```
+
+### Step 3: Run the Raspi/AP13/STA12 pipeline
+
+```bash
+cd /home/nextnet/AlbertoDir/go2_dt
+
+RASPI_HOST=172.16.13.100 \
+RASPI_MGMT_HOST=10.39.251.226 \
+SPARK_IP=172.16.12.170 \
+STA_MGMT_HOST=192.168.1.12 \
+ENABLE_CAMERA=1 \
+ENABLE_MP4=1 \
+ENABLE_IPERF=1 \
+ENABLE_CSI=0 \
+./tests_experiments/raspi_60ghz_ap13_sta12/run_ap13_sta12_pipeline.sh
+```
+
+### Step 4: Use your own MP4 on the Raspi
+
+```bash
+scp my_video.mp4 nextnet@172.16.13.100:/home/nextnet/raspi_60ghz_demo/my_video.mp4
+```
+
+```bash
+MP4_FILE=/home/nextnet/raspi_60ghz_demo/my_video.mp4 \
+ENABLE_MP4=1 \
+/home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh
+```
+
+If you change only `MP4_FILE`, the Spark receiver does not need to change. If you change `MP4_PORT`, update both sender and receiver.
+
+### Step 5: Stop
+
+```bash
+cd /home/nextnet/AlbertoDir/go2_dt
+./tests_experiments/raspi_60ghz_ap13_sta12/stop_ap13_sta12_pipeline.sh
+```
+
+or:
+
+```bash
+./stop_full_demo_current.sh
+```
+
+---
+
+## 9. Run Isaac Sim separately
+
+Use this when you want to test only the digital twin or open/edit scenes manually.
+
+```bash
+xhost +local:docker
+
+docker run --rm -it \
+  --name isaac-sim-gui \
+  --gpus all \
+  --network=host \
+  --ipc=host \
+  --ulimit memlock=-1 \
+  --ulimit stack=67108864 \
+  -e ACCEPT_EULA=Y \
+  -e PRIVACY_CONSENT=Y \
+  -e DISPLAY=$DISPLAY \
+  -e XAUTHORITY=$XAUTHORITY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+  -v $XAUTHORITY:$XAUTHORITY:rw \
+  -v ~/AlbertoDir/isaac51/cache/main/ov:/home/ubuntu/.cache/ov:rw \
+  -v ~/AlbertoDir/isaac51/cache/main/warp:/home/ubuntu/.cache/warp:rw \
+  -v ~/AlbertoDir/isaac51/cache/computecache:/home/ubuntu/.nv/ComputeCache:rw \
+  -v ~/AlbertoDir/isaac51/config:/home/ubuntu/.nvidia-omniverse/config:rw \
+  -v ~/AlbertoDir/isaac51/data/documents:/home/ubuntu/Documents:rw \
+  -v ~/AlbertoDir/isaac51/data/Kit:/home/ubuntu/.local/share/ov/data/Kit:rw \
+  -v ~/AlbertoDir/isaac51/logs:/home/ubuntu/.nvidia-omniverse/logs:rw \
+  -v ~/AlbertoDir:/workspace:rw \
+  --entrypoint /bin/bash \
+  nvcr.io/nvidia/isaac-sim:5.1.0 \
+  -lc 'cd /isaac-sim && ./runapp.sh'
+```
+
+Then use **File → Open** inside Isaac Sim and browse inside `/workspace`. The validated scene is:
 
 ```text
 /workspace/go2_assets/go2/prueba_demo2_new_scenario.usd
 ```
 
-Then run inside Isaac Sim:
+The sync script can be run from Isaac's Script Editor or Python console:
 
 ```python
 exec(open("/workspace/go2_dt/ros2_ws/go2_dt_sync_demo2_new.py").read())
 ```
 
-### Go2 SDK
+That `exec(...)` method is optional. The normal workflow is to open Isaac Sim, use **File → Open** to load the USD stage, and run the sync script only when live synchronization is required.
+
+---
+
+## 10. Run Go2 SDK separately
 
 ```bash
 cd /home/nextnet/AlbertoDir/go2_dt/ros2_ws
@@ -210,26 +351,98 @@ export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 ros2 launch go2_robot_sdk webrtc_web.launch.py
 ```
 
-### Full demo
+The SDK launcher remaps:
 
-```bash
-cd /home/nextnet/AlbertoDir/go2_dt
-./run_full_demo_current.sh
+```text
+cmd_vel_out -> cmd_vel
 ```
 
-Stop:
-
-```bash
-cd /home/nextnet/AlbertoDir/go2_dt
-./stop_full_demo_current.sh
-```
+This is why the patrol script publishes to `/cmd_vel_out`.
 
 ---
 
-## 7. Documentation index
+## 11. Hardcoded paths and how to change them
 
-- `docs/json_contracts.md`: exact JSON fields consumed by patrol and sync.
-- `docs/mikrotik_csi_openwrt.md`: AP13/STA12, CSI streaming, capture countdown and Raspi sender.
-- `docs/scripts_overview.md`: official scripts and how to test them.
-- `go2_dt/ros2_ws/README.md`: ROS 2, DDS, SDK, patrol and Isaac sync.
-- `go2_assets/README.md`: Isaac Sim assets, expected prims and `/workspace` mount.
+Several scripts were validated with:
+
+```text
+/home/nextnet/AlbertoDir/go2_dt
+```
+
+and Isaac Sim expects the project to be visible inside Docker as:
+
+```text
+/workspace
+```
+
+Changing the project directory affects:
+
+- `GO2_ROOT` in shell scripts;
+- `ROS_WS` in shell scripts;
+- JSON paths in `zone_loop_patrol_v3.py`;
+- JSON paths in `go2_dt_sync_demo2_new.py`;
+- Docker volume mounts;
+- OpenWrt CSI `PC_FILE`;
+- Raspi sender paths.
+
+Recommended reproducible approach:
+
+```bash
+mkdir -p /home/nextnet/AlbertoDir
+ln -s /home/nextnet/unitree_go2_dt_isaacsim_clean/go2_dt /home/nextnet/AlbertoDir/go2_dt
+ln -s /home/nextnet/unitree_go2_dt_isaacsim_clean/go2_assets /home/nextnet/AlbertoDir/go2_assets
+```
+
+If you change the base directory instead, update all of these consistently:
+
+| Place | What to change | What it affects |
+|---|---|---|
+| `run_full_demo_current.sh` | `GO2_ROOT`, `ROS_WS`, Docker `-v` mount | Full launcher, Isaac mount, ROS paths |
+| `stop_full_demo_current.sh` | `GO2_ROOT`, process paths if needed | Cleanup |
+| `zone_loop_patrol_v3.py` | `input_file`, `output_file`, `patrol_state_path`, sensor JSON paths | Patrol, safety stop, route replay |
+| `go2_dt_sync_demo2_new.py` | `/workspace/...` and `/home/nextnet/AlbertoDir/...` constants | Isaac sync and visualization |
+| OpenWrt CSI scripts | `PC_FILE` | Live CSI stream target |
+| Raspi sender | `MP4_FILE`, log paths if needed | Video streaming |
+
+---
+
+## 12. JSON integration
+
+Read the full contract here:
+
+```text
+docs/json_contracts.md
+```
+
+Minimal examples:
+
+```json
+{
+  "status": "online",
+  "person_detected": true
+}
+```
+
+```json
+{
+  "status": "online",
+  "prediction": "person"
+}
+```
+
+Important: the patrol and sync scripts use the **file modification time** to determine freshness. A sensor producer must rewrite the JSON file periodically even if the semantic state does not change.
+
+---
+
+## 13. Acknowledgements
+
+This repository builds on and integrates several open-source and research tools:
+
+- **Unitree Go2 ROS 2 SDK / RoboVerse community components**, adapted for this demo.
+- **NVIDIA Isaac Sim**, used as the digital twin simulation environment.
+- **YOLOX**, used for camera-based person detection.
+- **ROS 2 Jazzy**, used as the robotics middleware.
+- **MikroTik/OpenWrt CSI tooling**, adapted for live CSI/mmWave-inspired sensing experiments.
+- The UC3M/Spark demo environment and the physical 60 GHz AP13/STA12 testbed used to validate the pipeline.
+
+Please check the license of each upstream component before redistributing modified versions.

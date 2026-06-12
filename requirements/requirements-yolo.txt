@@ -1,0 +1,10 @@
+numpy
+opencv-python
+pillow
+torch
+torchvision
+tqdm
+loguru
+thop
+ninja
+tabulate

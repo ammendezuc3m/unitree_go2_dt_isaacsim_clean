@@ -1,192 +1,68 @@
 # JSON Contracts
 
-The demo uses JSON files as a lightweight integration interface. There is no central API server.
+There is no API server. Producers write JSON files and consumers read them.
 
-Main consumers:
+Freshness is based on **file modification time**, so producers must rewrite files periodically.
 
-- `zone_loop_patrol_v3.py`: uses sensor JSONs for safety-stop decisions.
-- `go2_dt_sync_demo2_new.py`: uses sensor JSONs for Isaac Sim visualization.
+## Camera
 
-Important: freshness is based on **file modification time (`mtime`)**, not only on `timestamp`. A producer must rewrite the file periodically.
+Path: `go2_dt/camera_yolo/outputs/live_camera_state.json`.
 
----
-
-## 1. Bad/offline statuses
-
-These statuses are treated as bad/offline by the patrol:
-
-```text
-fault
-offline
-stale
-error
-```
-
-Recommended valid status:
-
-```text
-online
-```
-
----
-
-## 2. Camera JSON
-
-Path:
-
-```text
-go2_dt/camera_yolo/outputs/live_camera_state.json
-```
-
-Minimum JSON accepted by patrol:
+Minimum:
 
 ```json
-{
-  "status": "online",
-  "person_detected": true
-}
+{ "status": "online", "person_detected": true }
 ```
 
-Fields used by patrol:
+Patrol uses `status`, `person_detected` and file mtime.
 
-```text
-status
-person_detected
-mtime of file
-```
+## LiDAR/SLAM
 
-Recommended full example:
+Path: `go2_dt/ros2_ws/lidar_outputs/live_lidar_state.json`.
+
+Accepted forms:
 
 ```json
-{
-  "status": "online",
-  "input_source": "local_usb_camera_yolox_120p",
-  "person_detected": false,
-  "count": 0,
-  "detections": [],
-  "frame_width": 424,
-  "frame_height": 240,
-  "error": null,
-  "timestamp": 1780584039.1061566
-}
-```
-
----
-
-## 3. LiDAR/SLAM JSON
-
-Path:
-
-```text
-go2_dt/ros2_ws/lidar_outputs/live_lidar_state.json
-```
-
-The patrol accepts, in order:
-
-1. `person_detected`
-2. `occupied`
-3. `count > 0`
-
-Minimum examples:
-
-```json
-{
-  "status": "online",
-  "person_detected": true
-}
+{ "status": "online", "person_detected": true }
 ```
 
 ```json
-{
-  "status": "online",
-  "occupied": true
-}
+{ "status": "online", "occupied": true }
 ```
 
 ```json
-{
-  "status": "online",
-  "count": 1
-}
+{ "status": "online", "count": 1 }
 ```
 
----
+## CSI/mmWave
 
-## 4. CSI/mmWave JSON
+Path: `go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json`.
 
-Path:
-
-```text
-go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json
-```
-
-The patrol checks:
-
-```text
-prediction
-raw_prediction
-label
-count
-```
-
-Minimum accepted examples:
+Accepted forms:
 
 ```json
-{
-  "status": "online",
-  "prediction": "person"
-}
+{ "status": "online", "prediction": "person" }
 ```
 
 ```json
-{
-  "status": "online",
-  "raw_prediction": "person"
-}
+{ "status": "online", "raw_prediction": "person" }
 ```
 
 ```json
-{
-  "status": "online",
-  "label": "occupied"
-}
+{ "status": "online", "label": "occupied" }
 ```
 
 ```json
-{
-  "status": "online",
-  "count": 1
-}
+{ "status": "online", "count": 1 }
 ```
 
-Person labels:
+Person labels: `person`, `person_1`, `human`, `occupied`, `true`.
 
-```text
-person
-person_1
-human
-occupied
-true
-```
+Empty labels: `empty`, `nothing`, `none`, `clear`, `background`, `no_object`, `no_novel_object`, `false`.
 
-Empty labels:
+## Adding a new sensor
 
-```text
-empty
-nothing
-none
-clear
-background
-no_object
-no_novel_object
-false
-```
-
----
-
-## 5. Adding a new sensor without an API
-
-Generic binary detector:
+Write a JSON periodically using one of the accepted fields:
 
 ```json
 {
@@ -198,7 +74,7 @@ Generic binary detector:
 }
 ```
 
-Generic classifier:
+or:
 
 ```json
 {
@@ -209,10 +85,3 @@ Generic classifier:
   "source": "my_classifier"
 }
 ```
-
-Requirements:
-
-1. Rewrite the JSON periodically.
-2. Keep the file fresh by modification time.
-3. Use one of the accepted fields: `person_detected`, `occupied`, `count`, `prediction`, `raw_prediction`, or `label`.
-4. If needed, edit the corresponding path parameter or script constant.
