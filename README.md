@@ -54,7 +54,7 @@ The demo integrates:
 
 ### 3.1 Architecture without Raspi
 
-This mode is intended for local development, debugging and demonstrations where the 60 GHz path is not required.
+This mode is intended for local development if you don't want to deploy with a Raspi. In this case you will have to have large ethernet and usb cables.
 
 ```mermaid
 flowchart LR
@@ -87,7 +87,7 @@ docs/images/architecture_without_raspi.png
 
 ### 3.2 Architecture with Raspi + MikroTik 60 GHz
 
-This mode is used when the demo includes the networking/radio side: camera RTP, MP4 RTP, `iperf`, CSI extraction and throughput visualization.
+This mode is used when the demo includes the Raspi
 
 ```mermaid
 flowchart LR
