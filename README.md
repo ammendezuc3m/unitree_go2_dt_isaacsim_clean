@@ -54,7 +54,11 @@ The demo integrates:
 
 ### 3.1 Architecture without Raspi
 
-This mode is intended for local development if you don't want to deploy with a Raspi. In this case you will have to have large ethernet and usb cables.
+This mode is intended for local development if you do not want to deploy the Raspberry Pi architecture. In this setup, the PC/Spark host is directly connected to the MikroTik AP/STA management network through Ethernet and to the YOLO/AprilTag cameras through USB.
+
+![Architecture without Raspi](docs/images/architecture_without_raspi.png)
+
+*Figure 1. No-Raspi architecture. The PC/Spark host manages both MikroTik devices through the Ethernet management network `192.168.1.0/24`, while AP13 and STA12 establish the 60 GHz radio link through `wlan0` using the `10.10.10.0/24` subnet. The YOLO and AprilTag cameras are connected directly to the PC through USB.*
 
 ```mermaid
 flowchart LR
@@ -77,7 +81,6 @@ flowchart LR
     Patrol --> PatrolJSON[live_patrol_state.json]
     PatrolJSON --> Sync
     Sync --> Isaac[Isaac Sim Digital Twin]
-```
 
 Recommended image placeholder:
 
@@ -88,6 +91,10 @@ docs/images/architecture_without_raspi.png
 ### 3.2 Architecture with Raspi + MikroTik 60 GHz
 
 This mode is used when the demo includes the Raspi
+
+![Architecture with Raspi](docs/images/architecture_with_raspi.png)
+
+*Figure 2. Raspi-based architecture. The Raspberry Pi acts as a remote sender for camera, MP4 video and `iperf` traffic. The traffic crosses the AP13–STA12 60 GHz link and reaches the PC/Spark host, where the receivers, YOLO pipeline, CSI predictor, ROS 2 stack and Isaac Sim digital twin are executed.*
 
 ```mermaid
 flowchart LR
