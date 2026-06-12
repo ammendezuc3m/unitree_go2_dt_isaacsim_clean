@@ -151,11 +151,14 @@ ROBOT_IP=192.168.12.1
 CONN_TYPE=webrtc
 ```
 
-### Optional Raspi/MikroTik mode
+###Mikrotik
 
-- Raspberry Pi reachable by SSH.
 - MikroTik/OpenWrt AP and STA reachable by SSH.
 - CSI scripts installed under `/root/scripts_csi_dog/`.
+
+### Optional Raspi mode
+
+- Raspberry Pi reachable by SSH.
 - Raspi sender installed under `/home/system/raspi_60ghz_demo/`.
 
 ---
