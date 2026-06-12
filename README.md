@@ -81,12 +81,8 @@ flowchart LR
     Patrol --> PatrolJSON[live_patrol_state.json]
     PatrolJSON --> Sync
     Sync --> Isaac[Isaac Sim Digital Twin]
-
-Recommended image placeholder:
-
-```text
-docs/images/architecture_without_raspi.png
 ```
+
 
 ### 3.2 Architecture with Raspi + MikroTik 60 GHz
 
