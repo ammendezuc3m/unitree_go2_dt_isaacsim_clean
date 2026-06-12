@@ -122,12 +122,6 @@ flowchart LR
     PatrolJSON --> Isaac
 ```
 
-Recommended image placeholder:
-
-```text
-docs/images/architecture_with_raspi.png
-```
-
 ---
 
 ## 4. Requirements
