@@ -52,3 +52,17 @@ go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/*.txt
 *_RESCUED_FLAT*
 isaac_write_test.txt
 go2_assets/isaac_lab_assets_local/
+
+# Hard exclusions for this demo repo
+go2_dt/_quarantine*/
+go2_dt/_cleanup_reports*/
+go2_dt/ros2_ws/build/
+go2_dt/ros2_ws/install/
+go2_dt/ros2_ws/log/
+go2_dt/**/__pycache__/
+go2_dt/**/site-packages/
+go2_dt/**/*.bak*
+go2_dt/**/*.broken*
+go2_dt/**/*.swp
+go2_dt/debug_logs/
+go2_dt/logs/
