@@ -66,3 +66,8 @@ go2_dt/**/*.broken*
 go2_dt/**/*.swp
 go2_dt/debug_logs/
 go2_dt/logs/
+
+# Runtime assets restored from the validated backup
+!go2_dt/camera_yolo/Weights/yolox_s.pth
+!go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/csi_empty_person_model_20260526_all_1_2200.joblib
+!go2_dt/media/golden_test.mp4
