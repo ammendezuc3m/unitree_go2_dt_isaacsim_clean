@@ -164,7 +164,11 @@ For the exact first-time Ethernet provisioning procedure, reverse-SSH prerequisi
 
 - Raspberry Pi reachable by SSH.
 - Raspi demo IP commonly `172.16.13.100`.
-- Raspi sender installed under `/home/system/raspi_60ghz_demo/`.
+- The canonical setup provisions the Raspberry Pi automatically from `deployment/raspi/raspi_60ghz_demo/`, including the camera/MP4 sender, persistent MP4 loop and iperf loop.
+- The setup also copies `go2_dt/media/golden_test.mp4` to the Raspberry Pi and provisions the CSI scripts on STA12 through the Raspberry Pi SSH hop.
+- AP13 does not need CSI scripts; its `hostapd` configuration is generated remotely by the setup itself.
+
+See [`deployment/README.md`](deployment/README.md) for the complete provisioning flow.
 
 ---
 
