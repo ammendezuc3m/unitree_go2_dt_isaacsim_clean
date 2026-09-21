@@ -21,6 +21,7 @@ The project supports two main execution architectures:
 
 | Goal | Read this |
 |---|---|
+| Fresh installation and device provisioning, step by step | [`docs/setup_from_scratch.md`](docs/setup_from_scratch.md) |
 | Understand and run the whole project | This `README.md` |
 | Main demo scripts and module-by-module execution | [`go2_dt/README.md`](go2_dt/README.md) |
 | ROS 2, DDS, Go2 SDK, patrol and Isaac sync | [`go2_dt/ros2_ws/README.md`](go2_dt/ros2_ws/README.md) |
@@ -44,6 +45,7 @@ The project supports two main execution architectures:
 │   └── images/
 ├── requirements/
 │   ├── README.md
+│   ├── requirements-runtime.txt
 │   ├── requirements-host.txt
 │   ├── requirements-csi.txt
 │   └── requirements-yolo.txt
@@ -115,29 +117,25 @@ This mode is used when the demo includes the Raspberry Pi as a remote sender. Th
 
 ### 5.1 Host / Spark / main PC
 
-- Ubuntu 22.04/24.04 recommended.
+- Ubuntu 24.04 recommended for the validated ROS 2 Jazzy host.
 - NVIDIA GPU with Docker GPU support.
 - Docker and NVIDIA Container Toolkit.
 - NVIDIA Isaac Sim Docker image: `nvcr.io/nvidia/isaac-sim:5.1.0`.
 - ROS 2 Jazzy.
-- Python 3.
-- `colcon`, `rosdep`, `rclpy`, OpenCV, GStreamer, `iperf3`, `tcpdump`, `v4l2-ctl`.
-- X11 graphical session with `gnome-terminal` or `xterm`.
+- Git LFS.
+- X11 graphical session with at least one of `gnome-terminal`, `xterm` or `konsole`.
 
-Install common system packages:
+This repository uses one host Python environment:
 
-```bash
-sudo apt update
-sudo apt install -y \
-  python3-pip python3-venv python3-colcon-common-extensions \
-  python3-rosdep git curl unzip \
-  gstreamer1.0-tools gstreamer1.0-plugins-base \
-  gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
-  gstreamer1.0-plugins-ugly gstreamer1.0-libav \
-  iperf3 tcpdump v4l-utils xterm
+```text
+go2_dt/.venv
 ```
 
-Python environments are described in [`requirements/README.md`](requirements/README.md).
+It contains the Go2 WebRTC SDK dependencies, YOLO/PyTorch dependencies, CSI/scikit-learn dependencies and common host utilities, while retaining access to ROS 2 Python packages through `--system-site-packages`.
+
+Follow [`requirements/README.md`](requirements/README.md) exactly for system packages, Git LFS, the unified Python environment, rosdep and the ROS workspace build.
+
+For a completely fresh deployment, including what must be copied to the MikroTik and Raspberry Pi, follow [`docs/setup_from_scratch.md`](docs/setup_from_scratch.md).
 
 ### 5.2 Robot
 
@@ -166,10 +164,13 @@ CONN_TYPE=webrtc
 
 ## 6. Build ROS 2 workspace
 
+After completing [`requirements/README.md`](requirements/README.md):
+
 ```bash
 cd /home/nextnet/AlbertoDir/go2_dt/ros2_ws
 
 source /opt/ros/jazzy/setup.bash
+source ../.venv/bin/activate
 
 rosdep update
 rosdep install --from-paths src --ignore-src -r -y
@@ -177,6 +178,8 @@ rosdep install --from-paths src --ignore-src -r -y
 colcon build --symlink-install
 source install/setup.bash
 ```
+
+If this is a fresh clone, run `git lfs pull` before building/running so the YOLO model, CSI model, MP4 and Isaac assets are present as real files.
 
 ---
 
