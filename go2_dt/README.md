@@ -2,6 +2,8 @@
 
 This folder contains the operational demo scripts.
 
+Before running any official launcher on a clean machine, create the repository-level host environment and build the ROS 2 workspace as described in [`../requirements/README.md`](../requirements/README.md). The launchers expect `../.venv` to exist.
+
 ## Official scripts
 
 | Script | Use |
