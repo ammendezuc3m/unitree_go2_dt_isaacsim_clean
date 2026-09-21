@@ -52,7 +52,7 @@ RASPI_USER="${RASPI_USER:-nextnet}"
 STA12_HOST="${STA12_HOST:-192.168.1.12}"
 STA12_USER="${STA12_USER:-root}"
 
-CSI_REMOTE_SCRIPT="${CSI_REMOTE_SCRIPT:-/root/scripts_csi_dog/stream_csi_stdout_05s_ap13.sh}"
+CSI_REMOTE_SCRIPT="${CSI_REMOTE_SCRIPT:-/root/scripts_csi_dog/stream_csi_stdout_05s_single.sh}"
 CSI_STREAM_FILE="${CSI_STREAM_FILE:-${GO2_ROOT}/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt}"
 
 LOG_DIR="${GO2_ROOT}/tests_experiments/tmp_outputs/raspi_60ghz_ap13_sta12"
@@ -85,7 +85,7 @@ for pid in $(ps w | grep -Ei \"stream_csi_stdout|stream_csi|iw dev wlan0 vendor|
   echo kill CSI pid=$pid
   kill -9 $pid 2>/dev/null || true
 done
-rm -f /tmp/csi_stdout_05s_ap13.lock 2>/dev/null || true
+rm -f /tmp/csi_stdout_05s.lock 2>/dev/null || true
 echo [CSI-STA12] arrancando streamer...
 '${CSI_REMOTE_SCRIPT}'
 '" \
