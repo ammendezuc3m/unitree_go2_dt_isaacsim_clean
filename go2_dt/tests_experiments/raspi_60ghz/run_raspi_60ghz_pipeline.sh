@@ -2,6 +2,7 @@
 set -Eeuo pipefail
 
 GO2_ROOT="${GO2_ROOT:-/home/nextnet/AlbertoDir/go2_dt}"
+PYTHON_BIN="${PYTHON_BIN:-${GO2_ROOT}/.venv/bin/python}"
 
 RASPI_HOST="${RASPI_HOST:-172.16.12.100}"
 RASPI_USER="${RASPI_USER:-system}"
@@ -39,6 +40,12 @@ open_terminal() {
 }
 
 cd "${GO2_ROOT}"
+
+if [[ ! -x "$PYTHON_BIN" ]]; then
+  echo "[raspi-pipeline][ERROR] Missing runtime Python: $PYTHON_BIN"
+  echo "[raspi-pipeline][ERROR] Create it from requirements/requirements-runtime.txt first."
+  exit 1
+fi
 
 log "RUN Raspi -> AP .12 -> 60GHz -> STA .13 -> Spark"
 log "Raspi: camera=${ENABLE_CAMERA}, mp4=${ENABLE_MP4}, iperf=${ENABLE_IPERF}"
@@ -87,7 +94,7 @@ if [[ "${ENABLE_CAMERA}" == "1" ]]; then
   log "Lanzando receptor YOLO pipe en Spark..."
   open_terminal "R3 - Raspi Camera YOLO RX" "
 cd '${GO2_ROOT}'
-python3 tests_experiments/raspi_60ghz/rx_camera_rtp_yolox_pipe.py \
+"$PYTHON_BIN" tests_experiments/raspi_60ghz/rx_camera_rtp_yolox_pipe.py \
   --port '${CAMERA_PORT}' \
   --latency-ms 300 \
   --width 424 \
