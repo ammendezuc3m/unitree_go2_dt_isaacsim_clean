@@ -3,7 +3,7 @@ set -u
 
 GO2_ROOT="/home/nextnet/AlbertoDir/go2_dt"
 
-BASE_SETUP="${BASE_SETUP:-$(ls -t "${GO2_ROOT}"/tests_experiments/raspi_60ghz_ap13_sta12/setup_ap13_sta12_link_raspi_wifi.sh.base_* 2>/dev/null | head -n 1)}"
+BASE_SETUP="${BASE_SETUP:-${GO2_ROOT}/tests_experiments/raspi_60ghz_ap13_sta12/setup_ap13_sta12_link_base.sh}"
 
 RASPI_USER="${RASPI_USER:-nextnet}"
 
@@ -204,7 +204,7 @@ ip addr show dev wlan0 || true
 }
 
 if [[ -z "${BASE_SETUP}" || ! -f "${BASE_SETUP}" ]]; then
-  err "No encuentro setup base .base_*"
+  err "No encuentro setup base: ${BASE_SETUP}"
   exit 1
 fi
 
