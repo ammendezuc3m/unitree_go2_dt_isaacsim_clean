@@ -1,259 +1,162 @@
-# Deployment scripts
+# Device deployment
 
-This folder contains the scripts that must be copied to the external devices used by the Raspi/MikroTik architecture.
+This directory contains the scripts that are **copied out of the Git repository and installed on the external devices**.
 
-The main repository code runs on the **PC/Spark**. The scripts in this folder are installed on the target devices and are then executed either manually during debugging or remotely through SSH by the Spark-side pipeline.
-
----
-
-## 1. Folder structure
+They do not normally run on Spark directly.
 
 ```text
 deployment/
-├── README.md
 ├── openwrt/
 │   └── scripts_csi_dog/
-│       ├── stream_csi_live_05s_single.sh
+│       ├── capture_csi.sh
 │       ├── capture_countdown.sh
-│       └── capture_csi.sh
+│       ├── stream_csi_live_05s_single.sh
+│       └── stream_csi_stdout_05s_single.sh
 └── raspi/
     └── raspi_60ghz_demo/
         ├── raspi_60ghz_sender.sh
-        └── iperf_client_loop.sh
+        ├── iperf_client_loop.sh
+        └── mp4_loop_tx_6002.sh
 ```
 
----
+For the complete commissioning order, see `docs/setup_from_scratch.md`.
 
-## 2. OpenWrt / MikroTik scripts
+## 1. MikroTik/OpenWrt
 
-Repository path:
-
-```text
-deployment/openwrt/scripts_csi_dog/
-```
-
-Target path on the MikroTik/OpenWrt device:
+Install the scripts on the relevant OpenWrt STA under:
 
 ```text
 /root/scripts_csi_dog/
 ```
 
-These scripts are intended to run inside the MikroTik/OpenWrt device, normally on the STA side. In the complete demo, they can be started remotely from the PC/Spark through SSH.
-
-### 2.1 `stream_csi_live_05s_single.sh`
-
-Purpose:
-
-```text
-Live CSI streaming from OpenWrt to the PC/Spark.
-```
-
-It triggers CSI measurements with the OpenWrt/MikroTik vendor command, validates the measurement lines from `dmesg`, and appends valid CSI lines to the PC/Spark file:
-
-```text
-/home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
-```
-
-Manual usage on OpenWrt:
+Example from Spark while directly connected to the management network:
 
 ```bash
-/root/scripts_csi_dog/stream_csi_live_05s_single.sh 172.16.12.170 nextnet
+sudo ip addr add 192.168.1.170/24 dev enP7s7
+
+ssh root@192.168.1.12 'mkdir -p /root/scripts_csi_dog'
+scp -O openwrt/scripts_csi_dog/*.sh root@192.168.1.12:/root/scripts_csi_dog/
+ssh root@192.168.1.12 'chmod +x /root/scripts_csi_dog/*.sh'
 ```
 
-Arguments:
+The important architectural point is:
+
+> Spark may start a CSI script over SSH, but the CSI trigger itself runs on the MikroTik/OpenWrt radio.
+
+For example, the device-side script ultimately executes:
+
+```sh
+cat "$MAC_BIN" | iw dev wlan0 vendor recv 0x001374 0x93 -
+```
+
+The six raw bytes in `MAC_BIN` are derived from the currently associated BSSID.
+
+### `capture_csi.sh`
+
+Finite labelled dataset capture. It runs locally on OpenWrt, restarts `wpa_supplicant`, waits for association, triggers CSI and writes measurements below `/tmp/csi_dog_dataset`.
+
+### `capture_countdown.sh`
+
+Batch/countdown wrapper around `capture_csi.sh`.
+
+### `stream_csi_stdout_05s_single.sh`
+
+Preferred live streamer for the Raspi/full demo. It runs on STA12 and prints measurements to stdout. Spark reaches it through nested SSH and saves the output to:
 
 ```text
-172.16.12.170 = PC/Spark IP that receives CSI
-nextnet       = PC/Spark Linux user
+go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
 ```
 
-### 2.2 `capture_countdown.sh`
+### `stream_csi_live_05s_single.sh`
 
-Purpose:
-
-```text
-Dataset capture helper with countdown and rest time between captures.
-```
-
-Manual usage on OpenWrt:
+Alternative push mode. OpenWrt itself opens an SSH append pipe to Spark. Usage:
 
 ```bash
-/root/scripts_csi_dog/capture_countdown.sh <label> <num_samples> <num_runs> [start_id] [rest_seconds]
+/root/scripts_csi_dog/stream_csi_live_05s_single.sh <PC_IP> <PC_USER> [PC_FILE]
+```
+
+## 2. Raspberry Pi
+
+Install runtime scripts under:
+
+```text
+/home/system/raspi_60ghz_demo/
 ```
 
 Example:
 
 ```bash
-/root/scripts_csi_dog/capture_countdown.sh person 120 100 1 10
+RASPI_MGMT_HOST=192.168.1.100
+RASPI_USER=nextnet
+
+ssh "$RASPI_USER@$RASPI_MGMT_HOST" \
+  'sudo mkdir -p /home/system/raspi_60ghz_demo && sudo chown -R nextnet:nextnet /home/system/raspi_60ghz_demo'
+
+scp raspi/raspi_60ghz_demo/*.sh \
+  "$RASPI_USER@$RASPI_MGMT_HOST:/home/system/raspi_60ghz_demo/"
+
+ssh "$RASPI_USER@$RASPI_MGMT_HOST" \
+  'chmod +x /home/system/raspi_60ghz_demo/*.sh'
 ```
 
-It calls:
+The current scripts are:
+
+- `raspi_60ghz_sender.sh`: camera RTP/H264 and iperf; can also send MP4 when enabled.
+- `iperf_client_loop.sh`: restarts iperf if a long run ends or the connection drops.
+- `mp4_loop_tx_6002.sh`: persistent golden-MP4 sender used by the full demo.
+
+The validated MP4 is stored separately on the Pi:
 
 ```text
-/root/scripts_csi_dog/capture_csi.sh
+/home/nextnet/raspi_60ghz_demo/golden_test.mp4
 ```
 
-Therefore, `capture_csi.sh` must also be installed on the OpenWrt device.
-
-### 2.3 `capture_csi.sh`
-
-Purpose:
-
-```text
-Low-level finite CSI capture script called by capture_countdown.sh.
-```
-
-If this file is missing, `capture_countdown.sh` will not be able to collect labelled datasets.
-
----
-
-## 3. Install OpenWrt / MikroTik scripts
-
-From the PC/Spark:
+Copy it from the repository after Git LFS has restored it:
 
 ```bash
-cd /home/nextnet/AlbertoDir
-
-scp -r deployment/openwrt/scripts_csi_dog root@192.168.1.12:/root/
-
-ssh root@192.168.1.12 'chmod +x /root/scripts_csi_dog/*.sh'
+ssh "$RASPI_USER@$RASPI_MGMT_HOST" 'mkdir -p /home/nextnet/raspi_60ghz_demo'
+scp ../go2_dt/media/golden_test.mp4 \
+  "$RASPI_USER@$RASPI_MGMT_HOST:/home/nextnet/raspi_60ghz_demo/golden_test.mp4"
 ```
 
-Use `192.168.1.12` for STA12.
+## 3. Provisioning is not the network setup phase
 
-If the CSI scripts must run on AP13 instead, use:
+These are separate:
+
+1. **Provision devices**: copy the scripts above once, or whenever they change.
+2. **Run network setup**: configure AP13/STA12 association, demo IPs, forwarding and routes.
+3. **Run the demo**: Spark invokes the already-installed remote scripts.
+
+The network setup command is:
 
 ```bash
-scp -r deployment/openwrt/scripts_csi_dog root@192.168.1.13:/root/
+cd ../go2_dt
 
-ssh root@192.168.1.13 'chmod +x /root/scripts_csi_dog/*.sh'
-```
-
-Verify installation:
-
-```bash
-ssh root@192.168.1.12 'ls -lh /root/scripts_csi_dog && ls -lh /root/scripts_csi_dog/*.sh'
-```
-
----
-
-## 4. Raspberry Pi scripts
-
-Repository path:
-
-```text
-deployment/raspi/raspi_60ghz_demo/
-```
-
-Target path on the Raspberry Pi:
-
-```text
-/home/system/raspi_60ghz_demo/
-```
-
-These scripts are intended to run on the Raspberry Pi. In the full pipeline, the Spark-side scripts start them remotely through SSH.
-
-### 4.1 `raspi_60ghz_sender.sh`
-
-Purpose:
-
-```text
-Starts the Raspberry Pi camera stream, optional MP4 stream and iperf client toward the PC/Spark.
-```
-
-Main default ports:
-
-```text
-Camera RTP: UDP 6000
-MP4 RTP:    UDP 6002
-iperf3:     TCP/UDP 5201
-```
-
-Important variables:
-
-```text
-SPARK_IP=172.16.12.170
-CAMERA_DEVICE=/dev/video0
-MP4_FILE=/home/nextnet/raspi_60ghz_demo/golden_test.mp4
-ENABLE_CAMERA=1
-ENABLE_MP4=0
-ENABLE_IPERF=1
-```
-
-Manual example on the Raspi:
-
-```bash
-SPARK_IP=172.16.12.170 \
-ENABLE_CAMERA=1 \
-ENABLE_MP4=1 \
-MP4_FILE=/home/nextnet/raspi_60ghz_demo/my_video.mp4 \
-/home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh
-```
-
-### 4.2 `iperf_client_loop.sh`
-
-Purpose:
-
-```text
-Persistent iperf client loop used by raspi_60ghz_sender.sh.
-```
-
-It restarts `iperf3` automatically if the connection drops.
-
----
-
-## 5. Install Raspberry Pi scripts
-
-From the PC/Spark:
-
-```bash
-cd /home/nextnet/AlbertoDir
-
-ssh nextnet@172.16.13.100 'sudo mkdir -p /home/system/raspi_60ghz_demo && sudo chown -R nextnet:nextnet /home/system/raspi_60ghz_demo'
-
-scp deployment/raspi/raspi_60ghz_demo/*.sh \
-  nextnet@172.16.13.100:/home/system/raspi_60ghz_demo/
-
-ssh nextnet@172.16.13.100 'chmod +x /home/system/raspi_60ghz_demo/*.sh'
-```
-
-Verify installation:
-
-```bash
-ssh nextnet@172.16.13.100 'ls -lh /home/system/raspi_60ghz_demo'
-```
-
----
-
-## 6. Relationship with the main pipeline
-
-Once the scripts have been copied to the external devices:
-
-1. The PC/Spark can run the AP13/STA12/Raspi setup script:
-
-```bash
-cd /home/nextnet/AlbertoDir/go2_dt
-
-RASPI_MGMT_HOST=10.39.251.226 \
+RASPI_MGMT_HOST=<raspi-management-ip> \
 RASPI_USER=nextnet \
 ./tests_experiments/raspi_60ghz_ap13_sta12/setup_ap13_sta12_link_raspi_wifi.sh
 ```
 
-2. The PC/Spark can run the Raspi/AP13/STA12 pipeline:
+That setup script configures connectivity. It is not intended to be the software installer for the Pi or MikroTik.
+
+## 4. Verify deployment before a demo
 
 ```bash
-RASPI_HOST=172.16.13.100 \
-SPARK_IP=172.16.12.170 \
-STA_MGMT_HOST=192.168.1.12 \
-ENABLE_CAMERA=1 \
-ENABLE_MP4=1 \
-ENABLE_IPERF=1 \
-./tests_experiments/raspi_60ghz_ap13_sta12/run_ap13_sta12_pipeline.sh
+ssh nextnet@<raspi-management-ip> '
+  test -x /home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh &&
+  test -x /home/system/raspi_60ghz_demo/iperf_client_loop.sh &&
+  test -x /home/system/raspi_60ghz_demo/mp4_loop_tx_6002.sh &&
+  echo RASPI_OK
+'
 ```
 
-The Spark-side scripts then use SSH to start or interact with the scripts installed under:
+For STA12 through the Raspi:
 
-```text
-/root/scripts_csi_dog/
-/home/system/raspi_60ghz_demo/
+```bash
+ssh nextnet@<raspi-management-ip> \
+  "ssh root@192.168.1.12 '
+    test -x /root/scripts_csi_dog/capture_csi.sh &&
+    test -x /root/scripts_csi_dog/stream_csi_stdout_05s_single.sh &&
+    echo STA_CSI_OK
+  '"
 ```
