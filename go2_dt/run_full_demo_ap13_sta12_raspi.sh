@@ -24,6 +24,8 @@ set -Eeuo pipefail
 USER_HOME="${HOME}"
 GO2_ROOT="${USER_HOME}/AlbertoDir/go2_dt"
 ROS_WS="${GO2_ROOT}/ros2_ws"
+REPO_ROOT="$(cd "${GO2_ROOT}/.." && pwd)"
+VENV_DIR="${REPO_ROOT}/.venv"
 CSI_LIVE_PREDICTOR="${GO2_ROOT}/csi_live_predictor_from_stream.py"
 CSI_VOTE_THRESHOLD="2"
 CSI_VOTE_WINDOW="3"
@@ -260,11 +262,13 @@ preflight() {
   check_file "$ZONE_LOOP_SCRIPT"
   check_file "$PHASE_LAP_FILE"
   check_file "${ROS_WS}/install/setup.bash"
+  check_file "${VENV_DIR}/bin/activate"
+  check_file "${VENV_DIR}/bin/python"
 
   bash -n "$RASPI_STACK_SH"
   bash -n "$RASPI_STOP_SH"
-  "${GO2_ROOT}/venvs/webcam_yolo_env/bin/python" -m py_compile "${GO2_ROOT}/tests_experiments/raspi_60ghz/rx_camera_rtp_yolox_realtime_pipe.py"
-  python3 -m py_compile "${GO2_ROOT}/tests_experiments/raspi_60ghz_ap13_sta12/throughput_local_rx_tk_smooth.py"
+  "${VENV_DIR}/bin/python" -m py_compile "${GO2_ROOT}/tests_experiments/raspi_60ghz/rx_camera_rtp_yolox_realtime_pipe.py"
+  "${VENV_DIR}/bin/python" -m py_compile "${GO2_ROOT}/tests_experiments/raspi_60ghz_ap13_sta12/throughput_local_rx_tk_smooth.py"
 
   sudo -v
 
@@ -344,6 +348,7 @@ cd '${ROS_WS}'
 export ROBOT_IP='${ROBOT_IP}'
 export CONN_TYPE='${CONN_TYPE}'
 source /opt/ros/jazzy/setup.bash
+source '${VENV_DIR}/bin/activate'
 source install/setup.bash
 ros2 launch '${GO2_SLAM_LIVE_LAUNCH}'
 "
@@ -381,7 +386,7 @@ source install/setup.bash 2>/dev/null || true
 ZONE_LOG='${GO2_ROOT}/debug_logs/zone_loop_patrol_'\$(date +%Y%m%d_%H%M%S)'.log'
 echo '[ZONE] log='\${ZONE_LOG}
 
-python3 '${ZONE_LOOP_SCRIPT}' \\
+python '${ZONE_LOOP_SCRIPT}' \\
   --ros-args \\
   -p mode:=auto \\
   -p camera_index:=${ZONE_LOOP_CAMERA_INDEX} \\
@@ -458,7 +463,7 @@ echo '[CSI-PRED] state=${CSI_STATE_JSON}' | tee -a \"\${CSI_PRED_LOG}\"
 echo '[CSI-PRED] csv=${CSI_PREDICTIONS_CSV}' | tee -a \"\${CSI_PRED_LOG}\"
 echo '[CSI-PRED] confirm=${CSI_CONFIRM_COUNT} window=${CSI_VOTE_WINDOW} threshold=${CSI_VOTE_THRESHOLD}' | tee -a \"\${CSI_PRED_LOG}\"
 
-python3 '${CSI_LIVE_PREDICTOR}' \\
+'${VENV_DIR}/bin/python' '${CSI_LIVE_PREDICTOR}' \\
   --input-file '${CSI_STREAM_FILE}' \\
   --model '${CSI_MODEL}' \\
   --state-json '${CSI_STATE_JSON}' \\
