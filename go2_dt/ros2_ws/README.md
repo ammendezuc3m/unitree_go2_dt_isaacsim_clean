@@ -4,14 +4,29 @@ This workspace contains the modified Go2 ROS 2 SDK, patrol controller, SLAM/LiDA
 
 ## Build
 
+Create the canonical project venv once from the repository root:
+
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt/ros2_ws
+cd /home/nextnet/AlbertoDir
+bash requirements/setup_host_env.sh
+```
+
+Then build this workspace with ROS 2 and the same venv active:
+
+```bash
 source /opt/ros/jazzy/setup.bash
+source /home/nextnet/AlbertoDir/.venv/bin/activate
+
+cd /home/nextnet/AlbertoDir/go2_dt/ros2_ws
+
+sudo rosdep init 2>/dev/null || true
 rosdep update
 rosdep install --from-paths src --ignore-src -r -y
 colcon build --symlink-install
 source install/setup.bash
 ```
+
+Do not build the current workspace against an unrelated Python venv. The full-demo launchers use `/home/nextnet/AlbertoDir/.venv` for the Go2 SDK and the host-side Python processes.
 
 ## Official SLAM launch
 
