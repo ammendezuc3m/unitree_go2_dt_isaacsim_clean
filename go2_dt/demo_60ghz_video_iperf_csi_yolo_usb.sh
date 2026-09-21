@@ -19,6 +19,8 @@ set -Eeuo pipefail
 
 USER_HOME="${HOME}"
 GO2_ROOT="${USER_HOME}/AlbertoDir/go2_dt"
+REPO_ROOT="$(cd "${GO2_ROOT}/.." && pwd)"
+PROJECT_PYTHON="${REPO_ROOT}/.venv/bin/python"
 ROS_WS="${GO2_ROOT}/ros2_ws"
 
 PY_SCRIPT="${GO2_ROOT}/video_file_tx_rx_yolo_usb.py"
@@ -183,6 +185,7 @@ preflight() {
   check_cmd ssh
   check_cmd ip
   check_cmd python3
+  check_file "$PROJECT_PYTHON"
   check_cmd tcpdump
   check_cmd timeout
   check_cmd gst-launch-1.0
@@ -618,7 +621,7 @@ launch_csi_predictor() {
 set -e
 cd '${GO2_ROOT}'
 
-python3 '${CSI_LIVE_PREDICTOR}' \
+'${PROJECT_PYTHON}' '${CSI_LIVE_PREDICTOR}' \
   --input-file '${CSI_STREAM_FILE}' \
   --model '${CSI_MODEL}' \
   --state-json '${CSI_STATE_JSON}' \
@@ -639,7 +642,7 @@ cd '${GO2_ROOT}'
 mkdir -p '${GO2_ROOT}/debug_logs'
 LOG_FILE='${GO2_ROOT}/debug_logs/video_20mbps_yolo_usb_'\$(date +%Y%m%d_%H%M%S)'.log'
 
-./venvs/webcam_yolo_env/bin/python '${PY_SCRIPT}' \
+'${PROJECT_PYTHON}' '${PY_SCRIPT}' \
   --video-file '${VIDEO_FILE}' \
   --local-iface '${LOCAL_IFACE}' \
   --local-video-ip '${LOCAL_VIDEO_IP_PLAIN}' \
