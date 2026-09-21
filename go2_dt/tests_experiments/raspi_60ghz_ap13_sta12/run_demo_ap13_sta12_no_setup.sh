@@ -24,7 +24,7 @@ set -Eeuo pipefail
 # ============================================================
 
 GO2_ROOT="${GO2_ROOT:-/home/nextnet/AlbertoDir/go2_dt}"
-YOLO_PYTHON="${GO2_ROOT}/venvs/webcam_yolo_env/bin/python"
+PYTHON_BIN="${PYTHON_BIN:-${GO2_ROOT}/.venv/bin/python}"
 
 SPARK_IF="${SPARK_IF:-enP7s7}"
 SPARK_IP="${SPARK_IP:-172.16.12.170}"
@@ -71,7 +71,7 @@ YOLO_CKPT="${YOLO_CKPT:-${GO2_ROOT}/camera_yolo/Weights/yolox_s.pth}"
 
 THROUGHPUT_LOCAL_PY="${GO2_ROOT}/tests_experiments/raspi_60ghz_ap13_sta12/throughput_local_rx_tk_smooth.py"
 YOLO_RX_PY="${GO2_ROOT}/tests_experiments/raspi_60ghz/rx_camera_rtp_yolox_realtime_pipe.py"
-YOLO_PY="/home/nextnet/AlbertoDir/go2_dt/venvs/webcam_yolo_env/bin/python"
+YOLO_PY="$PYTHON_BIN"
 
 LOG_DIR="${GO2_ROOT}/tests_experiments/tmp_outputs/raspi_60ghz_ap13_sta12"
 mkdir -p "${LOG_DIR}"
@@ -172,9 +172,10 @@ preflight() {
   check_file "${CSI_MODEL}"
   check_file "${YOLO_EXP_FILE}"
   check_file "${YOLO_CKPT}"
+  check_file "$PYTHON_BIN"
 
-  python3 -m py_compile "${YOLO_RX_PY}"
-  python3 -m py_compile "${THROUGHPUT_LOCAL_PY}"
+  "$PYTHON_BIN" -m py_compile "${YOLO_RX_PY}"
+  "$PYTHON_BIN" -m py_compile "${THROUGHPUT_LOCAL_PY}"
   bash -n "${CSI_STREAM_SH}"
   bash -n "${CSI_PREDICTOR_SH}"
 
@@ -231,19 +232,19 @@ launch_yolo_rx() {
 set -e
 cd '${GO2_ROOT}'
 '${YOLO_PY}' '${YOLO_RX_PY}' \
-  --port '${CAMERA_PORT}' \
+  --rx-port '${CAMERA_PORT}' \
   --latency-ms '80' \
   --width 424 \
   --height 240 \
   --fps 15 \
-  --json-out '${YOLO_JSON_OUT}' \
+  --camera-json-out '${YOLO_JSON_OUT}' \
   --yolo-exp-file '${YOLO_EXP_FILE}' \
   --yolo-ckpt '${YOLO_CKPT}' \
   --yolo-device 'gpu' \
   --yolo-conf '${YOLO_CONF}' \
   --yolo-nms '${YOLO_NMS}' \
   --yolo-tsize '${YOLO_TSIZE}' \
-  --process-fps '${YOLO_PROCESS_FPS}' \
+  --yolo-process-fps '${YOLO_PROCESS_FPS}' \
   --window-name 'raspi-rx-yolo' \
   --yolo-fp16 2>&1 | tee -a '${LOG_DIR}/rx_yolo.log'
 "
@@ -260,7 +261,7 @@ launch_throughput() {
   open_terminal "R4 - 60GHz Local RX Throughput" "
 set -e
 cd '${GO2_ROOT}'
-python3 '${THROUGHPUT_LOCAL_PY}' \
+'${PYTHON_BIN}' '${THROUGHPUT_LOCAL_PY}' \
   --iface '${SPARK_IF}' \
   --scale-max '${THROUGHPUT_SCALE_MAX}' \
   --window 240 \
@@ -318,9 +319,8 @@ ENABLE_CAMERA='${ENABLE_CAMERA}' \
 ENABLE_IPERF='${ENABLE_IPERF}' \
 IPERF_BITRATE='${IPERF_BITRATE}' \
 IPERF_MODE='${IPERF_MODE:-tcp}' \
-ENABLE_MP4='0' \
-ENABLE_MP4="${ENABLE_MP4:-0}"
-IPERF_MODE='tcp' \
+ENABLE_MP4='${ENABLE_MP4}' \
+IPERF_MODE='${IPERF_MODE}' \
 IPERF_PORT='${IPERF_PORT}' \
 CAMERA_PORT='${CAMERA_PORT}' \
 MP4_PORT='${MP4_PORT}' \
