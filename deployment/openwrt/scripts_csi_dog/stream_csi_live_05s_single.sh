@@ -3,12 +3,12 @@
 PC_IP="$1"
 PC_USER="$2"
 
-PC_FILE="/home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt"
+PC_FILE="${3:-/home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt}"
 KEY="/root/.ssh/id_rsa_dropbear"
 
-MAC_BIN="/tmp/ap_mac.bin"
-AP_IP="10.10.10.1"
-AP_MAC_TEXT="b8:69:f4:d5:49:a9"
+MAC_BIN="${CSI_MAC_BIN:-/tmp/csi_peer_mac.bin}"
+AP_IP="${CSI_AP_IP:-10.10.10.1}"
+AP_MAC_TEXT=""
 
 LOCAL_LOG="/tmp/csi_05s_single_local.txt"
 LOCKDIR="/tmp/csi_05s_single.lock"
@@ -36,6 +36,14 @@ check_mac_bin() {
   [ -f "$MAC_BIN" ] || return 1
   [ "$(wc -c < "$MAC_BIN")" = "6" ] || return 1
   return 0
+}
+
+prepare_peer_mac() {
+  AP_MAC_TEXT="$(iw dev wlan0 link 2>/dev/null | awk '/Connected to/ {print $3; exit}')"
+  [ -n "$AP_MAC_TEXT" ] || return 1
+  escaped="$(echo "$AP_MAC_TEXT" | awk -F: '{printf "\\x%s\\x%s\\x%s\\x%s\\x%s\\x%s", $1,$2,$3,$4,$5,$6}')"
+  printf '%b' "$escaped" > "$MAC_BIN"
+  check_mac_bin
 }
 
 is_connected() {
@@ -66,10 +74,16 @@ echo "[CSI] After trigger sleep: ${AFTER_TRIGGER_SLEEP_S}s" >&2
 echo "[CSI] MAC_BIN=${MAC_BIN}" >&2
 
 if ! check_mac_bin; then
-  echo "[CSI][ERROR] MAC_BIN inválido: $MAC_BIN" >&2
-  [ -f "$MAC_BIN" ] && hexdump -C "$MAC_BIN" >&2
-  exit 1
+  if ! prepare_peer_mac; then
+    echo "[CSI][ERROR] No pude derivar la MAC del AP asociado ni crear $MAC_BIN" >&2
+    exit 1
+  fi
 fi
+
+if [ -z "$AP_MAC_TEXT" ]; then
+  AP_MAC_TEXT="$(iw dev wlan0 link 2>/dev/null | awk '/Connected to/ {print $3; exit}')"
+fi
+echo "[CSI] Peer BSSID: $AP_MAC_TEXT" >&2
 
 : > "$LOCAL_LOG"
 
