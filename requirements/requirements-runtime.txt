@@ -1,0 +1,39 @@
+# Unified host runtime environment for the Go2 digital-twin demo.
+# Create with:
+#   python3 -m venv --system-site-packages go2_dt/.venv
+#   go2_dt/.venv/bin/pip install -U pip wheel setuptools
+#   go2_dt/.venv/bin/pip install -r requirements/requirements-runtime.txt
+#
+# --system-site-packages is intentional: ROS 2 Jazzy's rclpy and message
+# packages are installed by apt and must remain visible inside this venv.
+
+numpy==1.26.4
+scipy
+pandas
+matplotlib
+scikit-learn
+joblib
+tqdm
+opencv-python
+pillow
+pyyaml
+psutil
+requests
+
+# YOLOX / PyTorch
+torch
+torchvision
+loguru
+thop
+ninja
+tabulate
+
+# Unitree Go2 WebRTC SDK
+aiortc==1.9.0
+aiohttp
+paho-mqtt
+python-dotenv
+wasmtime
+pycryptodome
+cryptography
+pydub
