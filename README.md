@@ -154,7 +154,11 @@ CONN_TYPE=webrtc
 - STA12 management IP: `192.168.1.12`.
 - AP13 radio IP: `10.10.10.1`.
 - STA12 radio IP: `10.10.10.2`.
-- CSI scripts installed under `/root/scripts_csi_dog/`.
+- The CSI vendor command runs **on the MikroTik/OpenWrt device**, not on the PC/Spark.
+- Repository-side deployment files live under `deployment/openwrt/scripts_csi_dog/` and are installed on STA12 under `/root/scripts_csi_dog/`.
+- The current no-Raspi launcher automatically refreshes the live CSI streamer on STA12 before starting it. Dataset-capture helpers are provisioned separately when needed.
+
+For the exact first-time Ethernet provisioning procedure, reverse-SSH prerequisite and manual validation commands, see [`deployment/README.md`](deployment/README.md).
 
 ### 5.4 Optional Raspi mode
 
