@@ -2,6 +2,9 @@
 
 # Welcome to the Unitree Go2 ROS2 SDK Project!
 
+> **Integration note for this repository:** this directory contains the modified upstream SDK, but its original installation instructions below are not the canonical setup for `unitree_go2_dt_isaacsim_clean`. For this project, use the repository-level unified environment documented in `requirements/README.md` and created with `bash requirements/setup_host_env.sh`. The current demo uses the no-Open3D WebRTC/LiDAR path on ROS 2 Jazzy.
+
+
 > [!IMPORTANT]  
 > I hadn’t updated this repository in a long time, and a lot of changes accumulated, making the project somewhat messy. I’ve finally found time to refactor everything using Clean Architecture principles. Previously, the LiDAR stream ran at around 2 Hz; it now updates at 7 Hz. However, joint states still arrive at 1 Hz, so you may notice some URDF update lag—that’s expected with the new firmware (v1.1.7). We’ll need to find a workaround for that.
 
