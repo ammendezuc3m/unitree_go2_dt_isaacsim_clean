@@ -6,7 +6,8 @@ wasmtime
 torch
 torchvision
 pycryptodome
-opencv-python
+cryptography
+requests
+opencv-contrib-python
 pydub
 numpy==1.26.4
-
