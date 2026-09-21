@@ -98,7 +98,6 @@ CSI_VOTE_WINDOW="3"
 CSI_VOTE_THRESHOLD="2"
 
 # MAC del AP .13 por wlan0. Importante para el vendor recv CSI.
-AP_MAC_HEX='\\270\\151\\364\\325\\111\\251'
 
 SSH_OPTS=(
   -o BatchMode=yes
@@ -564,14 +563,6 @@ rm -f /tmp/csi_05s_single.out /tmp/csi_05s_single.pid
 
 (
 
-# --- DEFINITIVE CSI FIX: AP MAC as raw bytes, not escaped text ---
-# Must run after installing/writing the remote CSI script and before launching it.
-if [ -f /root/scripts_csi_dog/stream_csi_live_05s_single.sh ]; then
-  sed -i 's|^AP_MAC_HEX=.*|AP_MAC_HEX="\\270\\151\\364\\325\\111\\251"|' /root/scripts_csi_dog/stream_csi_live_05s_single.sh
-  sed -i 's|echo -n -e "$AP_MAC_HEX"[[:space:]]*|printf "%b" "$AP_MAC_HEX" |g' /root/scripts_csi_dog/stream_csi_live_05s_single.sh
-  sed -i 's|echo -ne "$AP_MAC_HEX"[[:space:]]*|printf "%b" "$AP_MAC_HEX" |g' /root/scripts_csi_dog/stream_csi_live_05s_single.sh
-fi
-# --- END DEFINITIVE CSI FIX ---
 
   sh '${CSI_REMOTE_SCRIPT}' '${LOCAL_VIDEO_IP_PLAIN}' '${USER}'
 ) >/tmp/csi_05s_single.out 2>&1 &
@@ -733,36 +724,6 @@ configure_forwarding_with_radio_retry() {
 
   err "No se pudo conseguir enlace AP/STA operativo tras ${attempts} intentos."
   exit 1
-}
-
-patch_remote_csi05_script() {
-  log "Parcheando streamer CSI 0.5s remoto: MAC AP raw bytes + printf..."
-
-  ssh "${SSH_OPTS[@]}" "${STA_USER}@${STA_HOST}" '
-set -u
-
-SCRIPT="/root/scripts_csi_dog/stream_csi_live_05s_single.sh"
-
-if [ ! -f "$SCRIPT" ]; then
-  echo "[STA][ERROR] No existe $SCRIPT"
-  exit 1
-fi
-
-cp "$SCRIPT" "$SCRIPT.bak_final_printf_$(date +%Y%m%d_%H%M%S)" 2>/dev/null || true
-
-# AP actual: .13 / b8:69:f4:d5:49:a9
-sed -i "s|^AP_MAC_HEX=.*|AP_MAC_HEX='\''\\\\xb8\\\\x69\\\\xf4\\\\xd5\\\\x49\\\\xa9'\''|" "$SCRIPT"
-
-# BusyBox echo -e puede dejar la MAC como texto tipo xb8x69.
-# printf "%b" sí convierte \xHH a bytes reales.
-sed -i "s|echo -n -e \"\$AP_MAC_HEX\" |printf \"%b\" \"\$AP_MAC_HEX\" |g" "$SCRIPT"
-sed -i "s|echo -ne \"\$AP_MAC_HEX\" |printf \"%b\" \"\$AP_MAC_HEX\" |g" "$SCRIPT"
-
-chmod +x "$SCRIPT"
-
-echo "=== CSI script remoto final ==="
-grep -nE "AP_MAC_HEX|vendor recv|printf|echo -n -e|echo -ne" "$SCRIPT"
-'
 }
 
 prepare_remote_csi_mac_bin() {
