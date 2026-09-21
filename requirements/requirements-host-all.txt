@@ -1,0 +1,44 @@
+# Canonical Python environment for the host/Spark.
+# Create it with: python3 -m venv --system-site-packages .venv
+#
+# ROS 2 Jazzy itself is installed from apt and exposed to this venv through
+# --system-site-packages. Do not pip-install rclpy.
+
+# Keep NumPy compatible with the ROS 2 Jazzy / Ubuntu 24.04 Python stack.
+numpy==1.26.4
+
+# Common scientific/runtime utilities
+scipy
+pandas
+matplotlib
+pillow
+pyyaml
+psutil
+requests
+tqdm
+
+# OpenCV contrib is required because zone_loop_patrol_v3.py uses cv2.aruco
+# with the AprilTag 36h11 dictionary.
+opencv-contrib-python
+
+# CSI/mmWave inference
+scikit-learn
+joblib
+
+# Go2 WebRTC SDK
+aiortc==1.9.0
+aiohttp
+paho-mqtt
+python-dotenv
+wasmtime
+pycryptodome
+cryptography
+pydub
+
+# YOLOX / camera inference
+torch
+torchvision
+loguru
+thop
+ninja
+tabulate
