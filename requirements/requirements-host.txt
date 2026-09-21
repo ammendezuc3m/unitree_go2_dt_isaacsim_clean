@@ -1,8 +1,8 @@
-numpy
+numpy==1.26.4
 scipy
 matplotlib
 pandas
-opencv-python
+opencv-contrib-python
 pillow
 pyyaml
 psutil
