@@ -85,8 +85,25 @@ fi
 if [[ "${ENABLE_MP4}" == "1" ]]; then
   if [[ ! -f "${MP4_FILE}" ]]; then
     echo "[raspi-tx][ERROR] MP4 no existe: ${MP4_FILE}" | tee "${LOG_DIR}/mp4_tx.log"
+  elif [[ "${USE_SAFE_MP4_LOOP}" == "1" && -x /home/system/raspi_60ghz_demo/mp4_loop_tx_6002.sh ]]; then
+    echo "[raspi-tx] Starting persistent MP4 loop..."
+
+    pkill -9 -f "mp4_loop_tx_6002.sh" 2>/dev/null || true
+    pkill -9 -f "gst-launch-1.0.*filesrc" 2>/dev/null || true
+
+    SPARK_IP="${SPARK_IP}" \
+    MP4_FILE="${MP4_FILE}" \
+    MP4_PORT="${MP4_PORT}" \
+    MP4_WIDTH="${MP4_WIDTH}" \
+    MP4_HEIGHT="${MP4_HEIGHT}" \
+    MP4_FPS="${MP4_FPS}" \
+    MP4_BITRATE_KBPS="${MP4_BITRATE_KBPS}" \
+    /home/system/raspi_60ghz_demo/mp4_loop_tx_6002.sh \
+      > "${LOG_DIR}/mp4_tx.log" 2>&1 &
+
+    echo $! > "${LOG_DIR}/mp4_tx.pid"
   else
-    echo "[raspi-tx] Starting MP4 stream..."
+    echo "[raspi-tx] Starting single-pass MP4 stream..."
 
     gst-launch-1.0 -v \
       filesrc location="${MP4_FILE}" ! \
