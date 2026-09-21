@@ -65,11 +65,11 @@ ssh_try() {
 echo "[R6-SIMPLE] limpiando TX viejos..."
 ssh_try "${RASPI_HOST}" '
 pkill -9 -f "mp4_loop_tx_6002.sh" 2>/dev/null || true
-pkill -9 -f "tx_mp4_simple_loop_6002.sh" 2>/dev/null || true
+pkill -9 -f "mp4_loop_tx_6002.sh" 2>/dev/null || true
 pkill -9 -f "gst-launch-1.0.*filesrc" 2>/dev/null || true
 ' || ssh_try "${RASPI_MGMT_HOST}" '
 pkill -9 -f "mp4_loop_tx_6002.sh" 2>/dev/null || true
-pkill -9 -f "tx_mp4_simple_loop_6002.sh" 2>/dev/null || true
+pkill -9 -f "mp4_loop_tx_6002.sh" 2>/dev/null || true
 pkill -9 -f "gst-launch-1.0.*filesrc" 2>/dev/null || true
 '
 
@@ -78,5 +78,5 @@ ssh_try "${RASPI_HOST}" "
 SPARK_IP='${SPARK_IP}' \
 PORT='${MP4_PORT}' \
 MP4_FILE='${MP4_FILE}' \
-/home/nextnet/raspi_60ghz_demo/tx_mp4_simple_loop_6002.sh
+/home/system/raspi_60ghz_demo/mp4_loop_tx_6002.sh
 "
