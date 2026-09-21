@@ -115,29 +115,32 @@ This mode is used when the demo includes the Raspberry Pi as a remote sender. Th
 
 ### 5.1 Host / Spark / main PC
 
-- Ubuntu 22.04/24.04 recommended.
+Validated target:
+
+- Ubuntu 24.04.
+- ROS 2 Jazzy installed from the official ROS 2 APT repository.
 - NVIDIA GPU with Docker GPU support.
 - Docker and NVIDIA Container Toolkit.
 - NVIDIA Isaac Sim Docker image: `nvcr.io/nvidia/isaac-sim:5.1.0`.
-- ROS 2 Jazzy.
-- Python 3.
-- `colcon`, `rosdep`, `rclpy`, OpenCV, GStreamer, `iperf3`, `tcpdump`, `v4l2-ctl`.
-- X11 graphical session with `gnome-terminal` or `xterm`.
+- X11 graphical session.
 
-Install common system packages:
+The host uses **one project Python environment** at:
 
-```bash
-sudo apt update
-sudo apt install -y \
-  python3-pip python3-venv python3-colcon-common-extensions \
-  python3-rosdep git curl unzip \
-  gstreamer1.0-tools gstreamer1.0-plugins-base \
-  gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
-  gstreamer1.0-plugins-ugly gstreamer1.0-libav \
-  iperf3 tcpdump v4l-utils xterm
+```text
+<repo>/.venv
 ```
 
-Python environments are described in [`requirements/README.md`](requirements/README.md).
+ROS 2 remains a system installation. The venv is created with `--system-site-packages` so that `rclpy`, `cv_bridge`, `tf2_ros` and the rest of the ROS Python stack remain visible.
+
+After ROS 2 Jazzy is installed, create the complete project environment from the repository root:
+
+```bash
+bash requirements/setup_host_env.sh
+```
+
+This installs and validates the dependencies required by the current host runtime: Go2 WebRTC SDK, CSI inference, YOLOX/camera processing and the Python utilities used by the demo.
+
+The exact system packages, ROS packages, Python packages and validation procedure are documented in [`requirements/README.md`](requirements/README.md).
 
 ### 5.2 Robot
 
@@ -174,17 +177,30 @@ See [`deployment/README.md`](deployment/README.md) for the complete provisioning
 
 ## 6. Build ROS 2 workspace
 
+Create the unified host environment first:
+
 ```bash
+cd /home/nextnet/AlbertoDir
+bash requirements/setup_host_env.sh
+```
+
+Then build the workspace **with that same environment active**:
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source /home/nextnet/AlbertoDir/.venv/bin/activate
+
 cd /home/nextnet/AlbertoDir/go2_dt/ros2_ws
 
-source /opt/ros/jazzy/setup.bash
-
+sudo rosdep init 2>/dev/null || true
 rosdep update
 rosdep install --from-paths src --ignore-src -r -y
 
 colcon build --symlink-install
 source install/setup.bash
 ```
+
+The official launchers check that `.venv` exists and use it for the Go2 SDK, CSI, YOLO and host-side Python processes.
 
 ---
 
