@@ -13,6 +13,7 @@ set -Eeuo pipefail
 USER_HOME="${HOME}"
 GO2_ROOT="${USER_HOME}/AlbertoDir/go2_dt"
 ROS_WS="${GO2_ROOT}/ros2_ws"
+PYTHON_BIN="${PYTHON_BIN:-${GO2_ROOT}/.venv/bin/python}"
 
 # Validated radio/video/CSI/YOLO/iperf scripts
 RADIO_STACK_SH="${GO2_ROOT}/demo_60ghz_video_iperf_csi_yolo_usb.sh"
@@ -186,7 +187,10 @@ preflight() {
   check_cmd ip
   check_cmd python3
   check_cmd docker
-  check_cmd gnome-terminal
+  if ! command -v gnome-terminal >/dev/null 2>&1 && ! command -v xterm >/dev/null 2>&1 && ! command -v konsole >/dev/null 2>&1; then
+    err "No encuentro gnome-terminal, xterm ni konsole."
+    exit 1
+  fi
 
   check_file "$RADIO_STACK_SH"
   check_file "$VIDEO_YOLO_PY"
@@ -195,6 +199,7 @@ preflight() {
   check_file "$ZONE_LOOP_SCRIPT"
   check_file "$PHASE_LAP_FILE"
   check_file "${ROS_WS}/install/setup.bash"
+  check_file "$PYTHON_BIN"
 
   sudo -v
 
@@ -208,8 +213,8 @@ preflight() {
     export XAUTHORITY="${HOME}/.Xauthority"
   fi
 
-  python3 -m py_compile "$VIDEO_YOLO_PY"
-  python3 -m py_compile "$THROUGHPUT_TK_PY"
+  "$PYTHON_BIN" -m py_compile "$VIDEO_YOLO_PY"
+  "$PYTHON_BIN" -m py_compile "$THROUGHPUT_TK_PY"
   bash -n "$RADIO_STACK_SH"
 }
 
@@ -282,7 +287,7 @@ launch_throughput_plot() {
   open_terminal "T4 - Throughput Live Plot" "
 set -e
 cd '${GO2_ROOT}'
-python3 '${THROUGHPUT_TK_PY}' \\
+'${PYTHON_BIN}' '${THROUGHPUT_TK_PY}' \\
   --local-iface '${LOCAL_IFACE}' \\
   --sta-host '${STA_HOST}' \\
   --scale-max '${THROUGHPUT_SCALE_MAX}' \\
@@ -301,7 +306,7 @@ cd '${ROS_WS}'
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 
-python3 '${ZONE_LOOP_SCRIPT}' \\
+'${PYTHON_BIN}' '${ZONE_LOOP_SCRIPT}' \\
   --ros-args \\
   -p mode:=auto \\
   -p camera_index:=${ZONE_LOOP_CAMERA_INDEX} \\
