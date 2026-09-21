@@ -535,118 +535,22 @@ PY
 }
 
 install_remote_csi05_script() {
-  log "Instalando streamer CSI 0.5s en STA..."
+  log "Instalando streamer CSI 0.5s del repositorio en STA..."
+
+  local script_dir
+  local repo_root
+  local local_script
+
+  script_dir="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  repo_root="$(cd "${script_dir}/.." && pwd)"
+  local_script="${repo_root}/deployment/openwrt/scripts_csi_dog/stream_csi_live_05s_single.sh"
+
+  check_file "${local_script}"
 
   ssh "${SSH_OPTS[@]}" "${STA_USER}@${STA_HOST}" "mkdir -p /root/scripts_csi_dog"
+  cat "${local_script}" | ssh "${SSH_OPTS[@]}" "${STA_USER}@${STA_HOST}" "cat > '${CSI_REMOTE_SCRIPT}' && chmod +x '${CSI_REMOTE_SCRIPT}'"
 
-  ssh "${SSH_OPTS[@]}" "${STA_USER}@${STA_HOST}" "cat > ${CSI_REMOTE_SCRIPT}" <<EOF
-#!/bin/sh
-set -u
-
-PC_IP="\$1"
-PC_USER="\$2"
-PC_FILE="${CSI_STREAM_FILE}"
-KEY="/root/.ssh/id_rsa_dropbear"
-
-LOCAL_LOG="/tmp/csi_05s_single_local.txt"
-LOCKDIR="/tmp/csi_05s_single.lock"
-
-AP_MAC_HEX='${AP_MAC_HEX}'
-PERIOD_S="0.5"
-AFTER_TRIGGER_SLEEP_S="0.25"
-
-if [ -z "\$PC_IP" ] || [ -z "\$PC_USER" ]; then
-  echo "Usage: \$0 <PC_IP> <PC_USER>"
-  exit 1
-fi
-
-if ! mkdir "\$LOCKDIR" 2>/dev/null; then
-  echo "[CSI][ERROR] Ya hay otro streamer CSI 0.5s ejecutándose."
-  echo "[CSI][ERROR] Lock: \$LOCKDIR"
-  ps w | grep -E "stream_csi|vendor recv|iw dev wlan0 vendor|ssh|dbclient" | grep -v grep || true
-  exit 1
-fi
-
-cleanup() {
-  echo
-  echo "[CSI] Cleaning up..."
-  rmdir "\$LOCKDIR" 2>/dev/null || true
-  exit 0
-}
-trap cleanup INT TERM EXIT
-
-is_connected() {
-  iw dev wlan0 link 2>/dev/null | grep -q "Connected to"
-}
-
-echo "[CSI] Target: \${PC_USER}@\${PC_IP}:\${PC_FILE}"
-echo "[CSI] Mode: SINGLE WRITER STRICT 0.5s"
-echo "[CSI] Period: \${PERIOD_S}s"
-echo "[CSI] Local log: \${LOCAL_LOG}"
-
-while true; do
-  if ! is_connected; then
-    echo "[CSI][WARN] wlan0 no conectado. Esperando..."
-    sleep 1
-    continue
-  fi
-
-  echo "[CSI] Opening SSH append pipe."
-
-  (
-    last_sent=""
-
-    while true; do
-      if ! is_connected; then
-        echo "[CSI][WARN] WiFi dropped" >&2
-        break
-      fi
-
-      echo -n -e "\$AP_MAC_HEX" | iw dev wlan0 vendor recv 0x001374 0x93 - >/dev/null 2>&1
-      sleep "\$AFTER_TRIGGER_SLEEP_S"
-
-      LAST_LINE="\$(dmesg | grep "\\[AOA\\] Measurement" | tail -n 1)"
-
-      echo "\$LAST_LINE" | grep -q "Measurement:" || {
-        sleep "\$PERIOD_S"
-        continue
-      }
-
-      [ "\$LAST_LINE" = "\$last_sent" ] && {
-        sleep "\$PERIOD_S"
-        continue
-      }
-
-      last_sent="\$LAST_LINE"
-
-      TOKENS="\$(echo "\$LAST_LINE" | awk -F'Measurement: ' '{print \$2}' | awk -F',' '{print NF}')"
-      MAC="\$(echo "\$LAST_LINE" | awk -F'Measurement: ' '{print \$2}' | awk -F',' '{print \$3}')"
-
-      [ "\$TOKENS" = "72" ] || {
-        echo "[CSI][DROP] tokens=\$TOKENS mac=\$MAC" >&2
-        sleep "\$PERIOD_S"
-        continue
-      }
-
-      [ "\$MAC" != "00:00:00:00:00:00" ] || {
-        echo "[CSI][DROP] zero mac" >&2
-        sleep "\$PERIOD_S"
-        continue
-      }
-
-      echo "\$LAST_LINE" >> "\$LOCAL_LOG"
-      printf "%s\\n" "\$LAST_LINE"
-
-      sleep "\$PERIOD_S"
-    done
-  ) | ssh -i "\$KEY" "\${PC_USER}@\${PC_IP}" "cat >> '\${PC_FILE}'"
-
-  echo "[CSI][WARN] SSH pipe closed. Reopening in 2s..."
-  sleep 2
-done
-EOF
-
-  ssh "${SSH_OPTS[@]}" "${STA_USER}@${STA_HOST}" "chmod +x ${CSI_REMOTE_SCRIPT}"
+  log "Streamer CSI desplegado en ${STA_HOST}:${CSI_REMOTE_SCRIPT}"
 }
 
 start_remote_csi05() {
@@ -981,6 +885,8 @@ main() {
   configure_forwarding_with_radio_retry
   verify_udp_path
 
+  # Keep the MikroTik runtime script in sync with the version tracked in deployment/.
+  install_remote_csi05_script
   prepare_remote_csi_mac_bin
   start_remote_csi05
   verify_csi_arrives
