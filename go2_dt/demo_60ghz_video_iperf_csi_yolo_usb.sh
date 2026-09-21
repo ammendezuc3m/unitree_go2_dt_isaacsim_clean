@@ -85,6 +85,7 @@ YOLO_PERSON_MIN_AREA_RATIO="0.04"
 YOLO_PERSON_MIN_ASPECT_RATIO="1.15"
 YOLO_EXP_FILE="${GO2_ROOT}/camera_yolo/YOLOX/exps/default/yolox_s.py"
 YOLO_CKPT="${GO2_ROOT}/camera_yolo/Weights/yolox_s.pth"
+PYTHON_BIN="${PYTHON_BIN:-${GO2_ROOT}/.venv/bin/python}"
 CAMERA_JSON_OUT="${GO2_ROOT}/camera_yolo/outputs/live_camera_state.json"
 
 # CSI externo
@@ -184,6 +185,7 @@ preflight() {
   check_cmd ssh
   check_cmd ip
   check_cmd python3
+  check_file "$PYTHON_BIN"
   check_cmd tcpdump
   check_cmd timeout
   check_cmd gst-launch-1.0
@@ -744,7 +746,7 @@ cd '${GO2_ROOT}'
 mkdir -p '${GO2_ROOT}/debug_logs'
 LOG_FILE='${GO2_ROOT}/debug_logs/video_20mbps_yolo_usb_'\$(date +%Y%m%d_%H%M%S)'.log'
 
-./venvs/webcam_yolo_env/bin/python '${PY_SCRIPT}' \
+"$PYTHON_BIN" '${PY_SCRIPT}' \
   --video-file '${VIDEO_FILE}' \
   --local-iface '${LOCAL_IFACE}' \
   --local-video-ip '${LOCAL_VIDEO_IP_PLAIN}' \
@@ -776,7 +778,7 @@ LOG_FILE='${GO2_ROOT}/debug_logs/video_20mbps_yolo_usb_'\$(date +%Y%m%d_%H%M%S)'
   --yolo-person-min-area-ratio '${YOLO_PERSON_MIN_AREA_RATIO}' \
   --yolo-person-min-aspect-ratio '${YOLO_PERSON_MIN_ASPECT_RATIO}' \
   --yolo-tsize '${YOLO_TSIZE}' \
-  $([[ '${YOLO_FP16}' == 'true' ]] && echo '') \
+  $([[ '${YOLO_FP16}' == 'true' ]] && echo '--yolo-fp16') \
   --verbose 2>&1 | tee -a \"\${LOG_FILE}\"
 "
 }
