@@ -2,6 +2,8 @@
 set -Eeuo pipefail
 
 GO2_ROOT="${GO2_ROOT:-/home/nextnet/AlbertoDir/go2_dt}"
+REPO_ROOT="$(cd "${GO2_ROOT}/.." && pwd)"
+PROJECT_PYTHON="${REPO_ROOT}/.venv/bin/python"
 
 CSI_LIVE_PREDICTOR="${CSI_LIVE_PREDICTOR:-${GO2_ROOT}/csi_live_predictor_from_stream.py}"
 CSI_STREAM_FILE="${CSI_STREAM_FILE:-${GO2_ROOT}/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt}"
@@ -21,6 +23,8 @@ CSI_MAX_INVALID_LOG_EVERY="${CSI_MAX_INVALID_LOG_EVERY:-20}"
 
 mkdir -p "$(dirname "${CSI_STREAM_FILE}")" "$(dirname "${CSI_STATE_JSON}")"
 
+test -x "${PROJECT_PYTHON}" || { echo "[ERROR] Falta ${PROJECT_PYTHON}. Ejecuta: bash ${REPO_ROOT}/requirements/setup_host_env.sh" >&2; exit 1; }
+
 echo "[csi-predictor] predictor=${CSI_LIVE_PREDICTOR}"
 echo "[csi-predictor] input=${CSI_STREAM_FILE}"
 echo "[csi-predictor] model=${CSI_MODEL}"
@@ -34,7 +38,7 @@ test -f "${CSI_LIVE_PREDICTOR}" || { echo "[ERROR] No existe ${CSI_LIVE_PREDICTO
 test -f "${CSI_MODEL}" || { echo "[ERROR] No existe ${CSI_MODEL}" >&2; exit 1; }
 
 # Estado inicial para que Zone Patrol no lea basura.
-python3 - <<PY
+"${PROJECT_PYTHON}" - <<PY
 import json, time
 p = "${CSI_STATE_JSON}"
 state = {
@@ -49,7 +53,7 @@ with open(p, "w") as f:
     json.dump(state, f)
 PY
 
-python3 "${CSI_LIVE_PREDICTOR}" \
+"${PROJECT_PYTHON}" "${CSI_LIVE_PREDICTOR}" \
   --input-file "${CSI_STREAM_FILE}" \
   --model "${CSI_MODEL}" \
   --state-json "${CSI_STATE_JSON}" \
