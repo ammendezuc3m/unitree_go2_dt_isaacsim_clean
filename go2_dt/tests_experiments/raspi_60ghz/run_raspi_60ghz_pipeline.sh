@@ -2,6 +2,8 @@
 set -Eeuo pipefail
 
 GO2_ROOT="${GO2_ROOT:-/home/nextnet/AlbertoDir/go2_dt}"
+REPO_ROOT="$(cd "${GO2_ROOT}/.." && pwd)"
+PROJECT_PYTHON="${REPO_ROOT}/.venv/bin/python"
 
 RASPI_HOST="${RASPI_HOST:-172.16.13.100}"
 RASPI_USER="${RASPI_USER:-nextnet}"
@@ -27,6 +29,11 @@ YOLO_PROCESS_FPS="${YOLO_PROCESS_FPS:-1}"
 
 LOG_DIR="${GO2_ROOT}/tests_experiments/tmp_outputs/raspi_60ghz"
 mkdir -p "${LOG_DIR}"
+
+if [[ ! -x "${PROJECT_PYTHON}" ]]; then
+  echo "[raspi-pipeline][ERROR] Falta ${PROJECT_PYTHON}. Ejecuta: bash ${REPO_ROOT}/requirements/setup_host_env.sh" >&2
+  exit 1
+fi
 
 log() {
   echo "[raspi-pipeline] $*"
@@ -87,7 +94,7 @@ if [[ "${ENABLE_CAMERA}" == "1" ]]; then
   log "Lanzando receptor YOLO pipe en Spark..."
   open_terminal "R3 - Raspi Camera YOLO RX" "
 cd '${GO2_ROOT}'
-python3 tests_experiments/raspi_60ghz/rx_camera_rtp_yolox_pipe.py \
+"${PROJECT_PYTHON}" tests_experiments/raspi_60ghz/rx_camera_rtp_yolox_pipe.py \
   --port '${CAMERA_PORT}' \
   --latency-ms 300 \
   --width 424 \
@@ -109,7 +116,7 @@ if [[ "${ENABLE_THROUGHPUT}" == "1" ]]; then
   log "Lanzando gráfica throughput..."
   open_terminal "R4 - 60GHz Throughput" "
 cd '${GO2_ROOT}'
-python3 throughput_live_tk.py \
+"${PROJECT_PYTHON}" throughput_live_tk.py \
   --local-iface enP7s7 \
   --sta-host '${STA_MGMT_HOST}' \
   --scale-max '${THROUGHPUT_SCALE_MAX}' \
