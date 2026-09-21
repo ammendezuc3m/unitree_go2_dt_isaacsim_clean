@@ -4,6 +4,7 @@ set -Eeuo pipefail
 GO2_ROOT="${GO2_ROOT:-/home/nextnet/AlbertoDir/go2_dt}"
 
 export RASPI_HOST="${RASPI_HOST:-172.16.13.100}"
+export RASPI_USER="${RASPI_USER:-nextnet}"
 export RASPI_MGMT_HOST="${RASPI_MGMT_HOST:-192.168.1.100}"
 export SPARK_IP="${SPARK_IP:-172.16.12.170}"
 export STA_MGMT_HOST="${STA_MGMT_HOST:-192.168.1.12}"
@@ -26,6 +27,7 @@ export YOLO_PROCESS_FPS="${YOLO_PROCESS_FPS:-1}"
 cd "${GO2_ROOT}"
 
 echo "[run-ap13-sta12] RASPI_HOST=${RASPI_HOST}"
+echo "[run-ap13-sta12] RASPI_USER=${RASPI_USER}"
 echo "[run-ap13-sta12] SPARK_IP=${SPARK_IP}"
 echo "[run-ap13-sta12] STA_MGMT_HOST=${STA_MGMT_HOST}"
 echo "[run-ap13-sta12] IPERF_BITRATE=${IPERF_BITRATE}"
