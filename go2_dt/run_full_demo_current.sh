@@ -13,6 +13,8 @@ set -Eeuo pipefail
 USER_HOME="${HOME}"
 GO2_ROOT="${USER_HOME}/AlbertoDir/go2_dt"
 ROS_WS="${GO2_ROOT}/ros2_ws"
+REPO_ROOT="$(cd "${GO2_ROOT}/.." && pwd)"
+VENV_DIR="${REPO_ROOT}/.venv"
 
 # Validated radio/video/CSI/YOLO/iperf scripts
 RADIO_STACK_SH="${GO2_ROOT}/demo_60ghz_video_iperf_csi_yolo_usb.sh"
@@ -195,6 +197,8 @@ preflight() {
   check_file "$ZONE_LOOP_SCRIPT"
   check_file "$PHASE_LAP_FILE"
   check_file "${ROS_WS}/install/setup.bash"
+  check_file "${VENV_DIR}/bin/activate"
+  check_file "${VENV_DIR}/bin/python"
 
   sudo -v
 
@@ -208,8 +212,8 @@ preflight() {
     export XAUTHORITY="${HOME}/.Xauthority"
   fi
 
-  python3 -m py_compile "$VIDEO_YOLO_PY"
-  python3 -m py_compile "$THROUGHPUT_TK_PY"
+  "${VENV_DIR}/bin/python" -m py_compile "$VIDEO_YOLO_PY"
+  "${VENV_DIR}/bin/python" -m py_compile "$THROUGHPUT_TK_PY"
   bash -n "$RADIO_STACK_SH"
 }
 
@@ -261,6 +265,7 @@ cd '${ROS_WS}'
 export ROBOT_IP='${ROBOT_IP}'
 export CONN_TYPE='${CONN_TYPE}'
 source /opt/ros/jazzy/setup.bash
+source '${VENV_DIR}/bin/activate'
 source install/setup.bash
 ros2 launch '${GO2_SLAM_LIVE_LAUNCH}'
 "
@@ -272,6 +277,7 @@ launch_radio_video_csi_yolo_iperf() {
   open_terminal "T3 - 60GHz Video CSI YOLO iperf" "
 set -e
 cd '${GO2_ROOT}'
+source '${VENV_DIR}/bin/activate'
 ./$(basename "$RADIO_STACK_SH")
 "
 }
@@ -282,7 +288,8 @@ launch_throughput_plot() {
   open_terminal "T4 - Throughput Live Plot" "
 set -e
 cd '${GO2_ROOT}'
-python3 '${THROUGHPUT_TK_PY}' \\
+source '${VENV_DIR}/bin/activate'
+python '${THROUGHPUT_TK_PY}' \\
   --local-iface '${LOCAL_IFACE}' \\
   --sta-host '${STA_HOST}' \\
   --scale-max '${THROUGHPUT_SCALE_MAX}' \\
@@ -299,9 +306,10 @@ launch_zone_loop() {
 set -e
 cd '${ROS_WS}'
 source /opt/ros/jazzy/setup.bash
+source '${VENV_DIR}/bin/activate'
 source install/setup.bash
 
-python3 '${ZONE_LOOP_SCRIPT}' \\
+python '${ZONE_LOOP_SCRIPT}' \\
   --ros-args \\
   -p mode:=auto \\
   -p camera_index:=${ZONE_LOOP_CAMERA_INDEX} \\
