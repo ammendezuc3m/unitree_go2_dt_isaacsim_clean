@@ -1,138 +1,197 @@
 # Deployment scripts
 
-This folder contains the scripts that must be copied to the external devices used by the Raspi/MikroTik architecture.
+This folder contains the files that are executed on the external devices. They are **not host-side scripts**: the PC/Spark orchestrates the demo over SSH, but the CSI vendor command itself is executed on the MikroTik/OpenWrt device and the video sender is executed on the Raspberry Pi.
 
-The main repository code runs on the **PC/Spark**. The scripts in this folder are installed on the target devices and are then executed either manually during debugging or remotely through SSH by the Spark-side pipeline.
+## 1. Execution model
 
----
-
-## 1. Folder structure
+For the MikroTik/OpenWrt CSI path the flow is:
 
 ```text
-deployment/
-├── README.md
-├── openwrt/
-│   └── scripts_csi_dog/
-│       ├── stream_csi_live_05s_single.sh
-│       ├── capture_countdown.sh
-│       └── capture_csi.sh
-└── raspi/
-    └── raspi_60ghz_demo/
-        ├── raspi_60ghz_sender.sh
-        └── iperf_client_loop.sh
+PC/Spark
+  |
+  | SSH: start/manage remote script
+  v
+MikroTik/OpenWrt STA12
+  /root/scripts_csi_dog/stream_csi_live_05s_single.sh
+  |
+  | executes locally on wlan0:
+  |   iw dev wlan0 vendor recv 0x001374 0x93 -
+  v
+kernel dmesg -> CSI/AoA measurement
+  |
+  | SSH append stream
+  v
+PC/Spark
+  go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
+  |
+  v
+csi_live_predictor_from_stream.py
 ```
 
----
+The important distinction is that commands such as:
 
-## 2. OpenWrt / MikroTik scripts
+```bash
+wpa_supplicant -D nl80211 -i wlan0 -c /etc/wpa_supplicant.conf -B
+echo -n -e '\x48\x8f\x5a\xdf\x02\x3b' | iw dev wlan0 vendor recv 0x001374 0x93 -
+```
 
-Repository path:
+must run **inside OpenWrt on the MikroTik**, because `wlan0`, the wil6210 driver and the vendor CSI command exist there. The PC only configures/starts the remote process and consumes the resulting CSI data.
+
+## 2. Files that belong on the MikroTik
+
+Repository source of truth:
 
 ```text
 deployment/openwrt/scripts_csi_dog/
+├── stream_csi_live_05s_single.sh
+├── capture_csi.sh
+└── capture_countdown.sh
 ```
 
-Target path on the MikroTik/OpenWrt device:
+Runtime destination on STA12:
 
 ```text
 /root/scripts_csi_dog/
 ```
 
-These scripts are intended to run inside the MikroTik/OpenWrt device, normally on the STA side. In the complete demo, they can be started remotely from the PC/Spark through SSH.
+The three tracked scripts have different roles:
 
-### 2.1 `stream_csi_live_05s_single.sh`
+- `stream_csi_live_05s_single.sh`: official live-demo CSI streamer. It triggers CSI on the MikroTik and streams valid measurements to the PC/Spark.
+- `capture_csi.sh`: finite labelled-dataset capture. It reconnects the STA with `wpa_supplicant`, triggers a requested number of CSI measurements and stores them under `/tmp/csi_dog_dataset/`.
+- `capture_countdown.sh`: convenience wrapper for repeated labelled captures; it calls `/root/scripts_csi_dog/capture_csi.sh`.
 
-Purpose:
+The historical ZIP used during development also contains older one-off/export/SSH variants. They are intentionally **not part of the official runtime path** unless a later experiment explicitly needs them.
 
-```text
-Live CSI streaming from OpenWrt to the PC/Spark.
-```
+## 3. First-time MikroTik provisioning
 
-It triggers CSI measurements with the OpenWrt/MikroTik vendor command, validates the measurement lines from `dmesg`, and appends valid CSI lines to the PC/Spark file:
+Do this once on a new/reflashed MikroTik, or whenever you need to restore the deployment files.
 
-```text
-/home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
-```
+### 3.1 Connect the PC directly to the management network
 
-Manual usage on OpenWrt:
-
-```bash
-/root/scripts_csi_dog/stream_csi_live_05s_single.sh 172.16.12.170 nextnet
-```
-
-Arguments:
+Connect the PC/Spark by Ethernet to the MikroTik management side. For the validated lab addressing:
 
 ```text
-172.16.12.170 = PC/Spark IP that receives CSI
-nextnet       = PC/Spark Linux user
+STA12 management IP: 192.168.1.12
+AP13 management IP:  192.168.1.13
+PC/Spark management IP used by the demo: 192.168.1.170/24
 ```
 
-### 2.2 `capture_countdown.sh`
+Example on the PC/Spark, replacing the interface if needed:
 
-Purpose:
+```bash
+sudo ip addr replace 192.168.1.170/24 dev enP7s7
+ping -c 3 192.168.1.12
+ssh -o HostKeyAlgorithms=+ssh-rsa root@192.168.1.12
+```
+
+Do not continue until SSH access to the target MikroTik works.
+
+### 3.2 Copy the tracked scripts to STA12
+
+Run this from the **repository root** on the PC/Spark:
+
+```bash
+scp -O -o HostKeyAlgorithms=+ssh-rsa \
+  deployment/openwrt/scripts_csi_dog/*.sh \
+  root@192.168.1.12:/root/scripts_csi_dog/
+```
+
+If the destination directory does not exist yet:
+
+```bash
+ssh -o HostKeyAlgorithms=+ssh-rsa root@192.168.1.12 \
+  'mkdir -p /root/scripts_csi_dog'
+```
+
+then repeat the `scp`.
+
+Make them executable and verify:
+
+```bash
+ssh -o HostKeyAlgorithms=+ssh-rsa root@192.168.1.12 \
+  'chmod +x /root/scripts_csi_dog/*.sh && ls -lh /root/scripts_csi_dog/'
+```
+
+### 3.3 Verify the OpenWrt radio prerequisites
+
+On STA12:
+
+```bash
+iw dev wlan0 link
+ip addr show dev wlan0
+test -f /etc/wpa_supplicant.conf && echo WPA_CONFIG_OK
+```
+
+For the finite dataset capture, `capture_csi.sh` starts:
+
+```bash
+wpa_supplicant -D nl80211 -i wlan0 -c /etc/wpa_supplicant.conf -B
+```
+
+so `/etc/wpa_supplicant.conf` must be valid on that device.
+
+For the live demo, the host-side launcher creates `/tmp/ap_mac.bin` on STA12 before starting the streamer. The live streamer checks that this file contains exactly six raw MAC bytes before triggering CSI.
+
+### 3.4 Verify the reverse SSH path used by live CSI
+
+The live streamer sends CSI measurements from STA12 back to the PC/Spark. It expects the MikroTik-side key:
 
 ```text
-Dataset capture helper with countdown and rest time between captures.
+/root/.ssh/id_rsa_dropbear
 ```
 
-Manual usage on OpenWrt:
+and the corresponding public key must be authorized for the PC/Spark Linux user used by the demo.
+
+From STA12, verify:
 
 ```bash
-/root/scripts_csi_dog/capture_countdown.sh <label> <num_samples> <num_runs> [start_id] [rest_seconds]
+ssh -i /root/.ssh/id_rsa_dropbear nextnet@192.168.1.170 'echo PC_OK'
 ```
 
-Example:
+Adjust user/IP if your deployment differs.
 
-```bash
-/root/scripts_csi_dog/capture_countdown.sh person 120 100 1 10
-```
+## 3.5 What the current no-Raspi launcher does automatically
 
-It calls:
+`go2_dt/run_full_demo_current.sh` starts the PC-side orchestration. Its radio sub-launcher now copies the tracked:
 
 ```text
-/root/scripts_csi_dog/capture_csi.sh
+deployment/openwrt/scripts_csi_dog/stream_csi_live_05s_single.sh
 ```
 
-Therefore, `capture_csi.sh` must also be installed on the OpenWrt device.
-
-### 2.3 `capture_csi.sh`
-
-Purpose:
+to:
 
 ```text
-Low-level finite CSI capture script called by capture_countdown.sh.
+/root/scripts_csi_dog/stream_csi_live_05s_single.sh
 ```
 
-If this file is missing, `capture_countdown.sh` will not be able to collect labelled datasets.
+on STA12 before CSI starts. Therefore the live streamer is kept in sync with the repository on every full-demo launch.
 
----
+This automatic deployment covers the **live streamer only**. The dataset helpers `capture_csi.sh` and `capture_countdown.sh` should still be provisioned with the first-time installation procedure above when dataset collection is needed.
 
-## 3. Install OpenWrt / MikroTik scripts
+## 3.6 Manual tests
 
-From the PC/Spark:
+Live streamer, executed on STA12:
 
 ```bash
-cd /home/nextnet/AlbertoDir
-
-scp -r deployment/openwrt/scripts_csi_dog root@192.168.1.12:/root/
-
-ssh root@192.168.1.12 'chmod +x /root/scripts_csi_dog/*.sh'
+/root/scripts_csi_dog/stream_csi_live_05s_single.sh 192.168.1.170 nextnet
 ```
 
-Use `192.168.1.12` for STA12.
-
-If the CSI scripts must run on AP13 instead, use:
+Finite dataset capture, executed on STA12:
 
 ```bash
-scp -r deployment/openwrt/scripts_csi_dog root@192.168.1.13:/root/
-
-ssh root@192.168.1.13 'chmod +x /root/scripts_csi_dog/*.sh'
+/root/scripts_csi_dog/capture_csi.sh person 120 1
 ```
 
-Verify installation:
+Repeated dataset capture:
 
 ```bash
-ssh root@192.168.1.12 'ls -lh /root/scripts_csi_dog && ls -lh /root/scripts_csi_dog/*.sh'
+/root/scripts_csi_dog/capture_countdown.sh person 120 10 1 5
+```
+
+Verify the live file on the PC/Spark:
+
+```bash
+tail -f /home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
 ```
 
 ---
