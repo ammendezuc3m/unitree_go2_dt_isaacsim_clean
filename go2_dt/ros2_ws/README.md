@@ -13,6 +13,29 @@ colcon build --symlink-install
 source install/setup.bash
 ```
 
+## Official SLAM launch
+
+The supported SLAM/LiDAR launch file for the current demo is:
+
+```text
+launch/go2_slam_live_visual.launch.py
+```
+
+It starts the Go2 driver, PointCloud2-to-LaserScan conversion, scan filtering, SLAM Toolbox, the Isaac state bridge, the `/cmd_vel_out -> /cmd_vel` relay and the live SLAM/LiDAR detector.
+
+Run it with:
+
+```bash
+cd /home/nextnet/AlbertoDir/go2_dt/ros2_ws
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+export ROBOT_IP=192.168.12.1
+export CONN_TYPE=webrtc
+ros2 launch ./launch/go2_slam_live_visual.launch.py
+```
+
+Only this launch file is part of the documented current path.
+
 ## DDS
 
 Use the same configuration in all terminals:
