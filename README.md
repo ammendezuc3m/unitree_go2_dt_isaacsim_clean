@@ -117,21 +117,18 @@ This mode is used when the demo includes the Raspberry Pi as a remote sender. Th
 
 ## 5. Fresh installation order
 
-Until the hardcoded-path cleanup is completed, the validated repository root is:
+The repository is now **path-independent on the host**. Clone it wherever you want; the official scripts resolve their own location at runtime.
 
-```text
-/home/nextnet/AlbertoDir
-```
-
-Clone directly into that path so the current launchers, Docker mounts and unified venv all resolve consistently:
+Example:
 
 ```bash
-mkdir -p /home/nextnet
-git clone <repository-url> /home/nextnet/AlbertoDir
-cd /home/nextnet/AlbertoDir
+git clone <repository-url> unitree_go2_dt_isaacsim_clean
+cd unitree_go2_dt_isaacsim_clean
 ```
 
-Install Git LFS and materialize the large runtime assets **before** building or provisioning external devices:
+From this point, all installation commands are executed from the repository root.
+
+Install Git LFS and materialize the large runtime assets before building or provisioning external devices:
 
 ```bash
 sudo apt update
@@ -142,19 +139,17 @@ git lfs pull
 bash requirements/check_lfs_assets.sh
 ```
 
-The critical LFS files include the YOLO weights, CSI model, demo MP4 and validated Isaac USD scene. A normal-looking clone that still contains LFS pointer files is not ready to run.
-
 Then continue in this order:
 
 ```text
-1. Install ROS 2 Jazzy + host system packages.
-2. Run: bash requirements/setup_host_env.sh
-3. Build go2_dt/ros2_ws with ROS 2 + .venv active.
+1. Install ROS 2 Jazzy and the host system packages.
+2. From the repository root run: bash requirements/setup_host_env.sh
+3. Activate ROS 2 and <repo-root>/.venv, then build go2_dt/ros2_ws.
 4. If using the Raspi architecture, run the AP13/STA12/Raspi setup.
-   The setup copies the tracked Raspberry Pi scripts + golden_test.mp4 to the Raspi
-   and copies the tracked CSI scripts to STA12 through the Raspi SSH hop.
 5. Launch the selected full demo.
 ```
+
+The setup scripts derive `REPO_ROOT` from their own location. No `/home/<user>/...` installation path or symlink is required.
 
 The detailed package installation is in [`requirements/README.md`](requirements/README.md), and the external-device provisioning sequence is in [`deployment/README.md`](deployment/README.md).
 
@@ -229,7 +224,7 @@ See [`deployment/README.md`](deployment/README.md) for the complete provisioning
 Create the unified host environment first:
 
 ```bash
-cd /home/nextnet/AlbertoDir
+cd <repo-root>
 bash requirements/setup_host_env.sh
 ```
 
@@ -237,9 +232,9 @@ Then build the workspace **with that same environment active**:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-source /home/nextnet/AlbertoDir/.venv/bin/activate
+source .venv/bin/activate
 
-cd /home/nextnet/AlbertoDir/go2_dt/ros2_ws
+cd go2_dt/ros2_ws
 
 sudo rosdep init 2>/dev/null || true
 rosdep update
@@ -280,7 +275,7 @@ ssh root@192.168.1.13 'ping -I wlan0 -c 3 10.10.10.2'
 ### Step 3: Run the current full stack
 
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt
+cd <repo-root>/go2_dt
 ./run_full_demo_current.sh
 ```
 
@@ -289,7 +284,7 @@ This launches Isaac Sim, Go2 SDK, SLAM live visual, local USB YOLO, CSI predicto
 ### Step 4: Stop
 
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt
+cd <repo-root>/go2_dt
 ./stop_full_demo_current.sh
 ```
 
@@ -308,7 +303,7 @@ Use Figure 2. The Raspberry Pi sends:
 ### Step 2: Configure AP13/STA12/Raspi
 
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt
+cd <repo-root>/go2_dt
 
 RASPI_MGMT_HOST=10.39.251.226 \
 RASPI_USER=nextnet \
@@ -318,7 +313,7 @@ RASPI_USER=nextnet \
 ### Step 3: Run the Raspi/AP13/STA12 pipeline
 
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt
+cd <repo-root>/go2_dt
 
 RASPI_HOST=172.16.13.100 \
 RASPI_MGMT_HOST=10.39.251.226 \
@@ -348,7 +343,7 @@ If you change only `MP4_FILE`, the Spark receiver does not need to change. If yo
 ### Step 5: Stop
 
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt
+cd <repo-root>/go2_dt
 ./tests_experiments/raspi_60ghz_ap13_sta12/stop_ap13_sta12_pipeline.sh
 ```
 
@@ -364,7 +359,21 @@ or:
 
 Use this when you want to test only the digital twin or open/edit scenes manually.
 
+From the repository root:
+
 ```bash
+REPO_ROOT="$(pwd)"
+ISAAC_DATA_ROOT="${REPO_ROOT}/.isaac51"
+
+mkdir -p \
+  "${ISAAC_DATA_ROOT}/cache/main/ov" \
+  "${ISAAC_DATA_ROOT}/cache/main/warp" \
+  "${ISAAC_DATA_ROOT}/cache/computecache" \
+  "${ISAAC_DATA_ROOT}/config" \
+  "${ISAAC_DATA_ROOT}/data/documents" \
+  "${ISAAC_DATA_ROOT}/data/Kit" \
+  "${ISAAC_DATA_ROOT}/logs"
+
 xhost +local:docker
 
 docker run --rm -it \
@@ -376,24 +385,24 @@ docker run --rm -it \
   --ulimit stack=67108864 \
   -e ACCEPT_EULA=Y \
   -e PRIVACY_CONSENT=Y \
-  -e DISPLAY=$DISPLAY \
-  -e XAUTHORITY=$XAUTHORITY \
+  -e DISPLAY="$DISPLAY" \
+  -e XAUTHORITY="$XAUTHORITY" \
   -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
-  -v $XAUTHORITY:$XAUTHORITY:rw \
-  -v ~/AlbertoDir/isaac51/cache/main/ov:/home/ubuntu/.cache/ov:rw \
-  -v ~/AlbertoDir/isaac51/cache/main/warp:/home/ubuntu/.cache/warp:rw \
-  -v ~/AlbertoDir/isaac51/cache/computecache:/home/ubuntu/.nv/ComputeCache:rw \
-  -v ~/AlbertoDir/isaac51/config:/home/ubuntu/.nvidia-omniverse/config:rw \
-  -v ~/AlbertoDir/isaac51/data/documents:/home/ubuntu/Documents:rw \
-  -v ~/AlbertoDir/isaac51/data/Kit:/home/ubuntu/.local/share/ov/data/Kit:rw \
-  -v ~/AlbertoDir/isaac51/logs:/home/ubuntu/.nvidia-omniverse/logs:rw \
-  -v ~/AlbertoDir:/workspace:rw \
+  -v "$XAUTHORITY:$XAUTHORITY:rw" \
+  -v "${ISAAC_DATA_ROOT}/cache/main/ov:/home/ubuntu/.cache/ov:rw" \
+  -v "${ISAAC_DATA_ROOT}/cache/main/warp:/home/ubuntu/.cache/warp:rw" \
+  -v "${ISAAC_DATA_ROOT}/cache/computecache:/home/ubuntu/.nv/ComputeCache:rw" \
+  -v "${ISAAC_DATA_ROOT}/config:/home/ubuntu/.nvidia-omniverse/config:rw" \
+  -v "${ISAAC_DATA_ROOT}/data/documents:/home/ubuntu/Documents:rw" \
+  -v "${ISAAC_DATA_ROOT}/data/Kit:/home/ubuntu/.local/share/ov/data/Kit:rw" \
+  -v "${ISAAC_DATA_ROOT}/logs:/home/ubuntu/.nvidia-omniverse/logs:rw" \
+  -v "${REPO_ROOT}:/workspace:rw" \
   --entrypoint /bin/bash \
   nvcr.io/nvidia/isaac-sim:5.1.0 \
   -lc 'cd /isaac-sim && ./runapp.sh'
 ```
 
-Then use **File → Open** inside Isaac Sim and browse inside `/workspace`. The validated scene is:
+Inside Isaac Sim, `/workspace` is the repository root mounted by Docker. Open the validated scene:
 
 ```text
 /workspace/go2_assets/go2/prueba_demo2_new_scenario.usd
@@ -405,16 +414,16 @@ The sync script can be run from Isaac's Script Editor or Python console:
 exec(open("/workspace/go2_dt/ros2_ws/go2_dt_sync_demo2_new.py").read())
 ```
 
-That `exec(...)` method is optional. The normal workflow is to open Isaac Sim, use **File → Open** to load the USD stage, and run the sync script only when live synchronization is required.
+The normal full launcher performs the same repository mount automatically.
 
 ---
 
 ## 11. Run Go2 SDK separately
 
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt/ros2_ws
+cd go2_dt/ros2_ws
 source /opt/ros/jazzy/setup.bash
-source /home/nextnet/AlbertoDir/.venv/bin/activate
+source .venv/bin/activate
 source install/setup.bash
 
 export ROBOT_IP=192.168.12.1
@@ -435,48 +444,62 @@ This is why the patrol script publishes to `/cmd_vel_out`.
 
 ---
 
-## 12. Hardcoded paths and current limitation
+## 12. Portable path model
 
-Several scripts were validated with:
+The current branch no longer requires the repository to live under a specific home directory.
 
-```text
-/home/nextnet/AlbertoDir/go2_dt
+Host-side shell scripts derive paths from their own location:
+
+```bash
+SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ```
 
-and Isaac Sim expects the project to be visible inside Docker as:
+Python scripts derive project paths from `Path(__file__).resolve()`. This applies to the patrol controller, CSI predictor and the ROS/SLAM launch path.
+
+The unified Python environment therefore always lives at:
+
+```text
+<repo-root>/.venv
+```
+
+and runtime assets are resolved below the clone itself:
+
+```text
+<repo-root>/go2_dt/...
+<repo-root>/go2_assets/...
+<repo-root>/deployment/...
+```
+
+### Isaac Sim
+
+The official launcher mounts the **actual repository root** into the container as:
 
 ```text
 /workspace
 ```
 
-Changing the project directory affects:
-
-- `GO2_ROOT` in shell scripts;
-- `ROS_WS` in shell scripts;
-- JSON paths in `zone_loop_patrol_v3.py`;
-- JSON paths in `go2_dt_sync_demo2_new.py`;
-- Docker volume mounts;
-- OpenWrt CSI `PC_FILE`;
-- Raspi sender paths.
-
-For the current branch, the supported workaround is **not** to use partial symlinks. Keep the repository root itself at:
+`/workspace` is intentionally a fixed **container-internal mount point**; it is not a required host path. For example, these host clones are equivalent:
 
 ```text
-/home/nextnet/AlbertoDir
+/home/alice/projects/unitree_go2_dt_isaacsim_clean
+/opt/demos/go2
+/mnt/data/research/go2
 ```
 
-This keeps `go2_dt/`, `go2_assets/`, `requirements/` and `.venv/` under the same root expected by the launchers.
+Each can be mounted by the launcher as `/workspace` inside Isaac Sim.
 
-The hardcoded-path cleanup remains known technical debt and should be refactored later. If you change the base directory now, update all of these consistently:
+The Isaac sync script also supports overriding that internal mount root with:
 
-| Place | What to change | What it affects |
-|---|---|---|
-| `run_full_demo_current.sh` | `GO2_ROOT`, `ROS_WS`, Docker `-v` mount | Full launcher, Isaac mount, ROS paths |
-| `stop_full_demo_current.sh` | `GO2_ROOT`, process paths if needed | Cleanup |
-| `zone_loop_patrol_v3.py` | `input_file`, `output_file`, `patrol_state_path`, sensor JSON paths | Patrol, safety stop, route replay |
-| `go2_dt_sync_demo2_new.py` | `/workspace/...` and `/home/nextnet/AlbertoDir/...` constants | Isaac sync and visualization |
-| OpenWrt CSI scripts | `PC_FILE` | Live CSI stream target |
-| Raspi sender | `MP4_FILE`, log paths if needed | Video streaming |
+```bash
+GO2_WORKSPACE_ROOT=/another/container/path
+```
+
+if the Docker layout is changed later.
+
+### Remote devices
+
+Paths such as `/root/scripts_csi_dog/` on OpenWrt or the Raspberry Pi runtime directory are **remote-device installation paths**, not host clone paths. They are provisioned over SSH by the setup scripts and do not depend on where the Git repository is cloned on the PC.
 
 ---
 
