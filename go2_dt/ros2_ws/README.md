@@ -7,17 +7,19 @@ This workspace contains the modified Go2 ROS 2 SDK, patrol controller, SLAM/LiDA
 Create the canonical project venv once from the repository root:
 
 ```bash
-cd <repo-root>
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "${REPO_ROOT}"
 bash requirements/setup_host_env.sh
 ```
 
 Then build this workspace with ROS 2 and the same venv active:
 
 ```bash
+REPO_ROOT="$(git rev-parse --show-toplevel)"
 source /opt/ros/jazzy/setup.bash
-source <repo-root>/.venv/bin/activate
+source "${REPO_ROOT}/.venv/bin/activate"
 
-cd <repo-root>/go2_dt/ros2_ws
+cd "${REPO_ROOT}/go2_dt/ros2_ws"
 
 sudo rosdep init 2>/dev/null || true
 rosdep update
@@ -26,7 +28,7 @@ colcon build --symlink-install
 source install/setup.bash
 ```
 
-Do not build the current workspace against an unrelated Python venv. The full-demo launchers resolve `<repo-root>/.venv` relative to the repository location.
+Do not build the current workspace against an unrelated Python venv. The full-demo launchers resolve `.venv` relative to the repository location.
 
 ## Official SLAM launch
 
@@ -41,7 +43,8 @@ It starts the Go2 driver, PointCloud2-to-LaserScan conversion, scan filtering, S
 Run it with:
 
 ```bash
-cd <repo-root>/go2_dt/ros2_ws
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "${REPO_ROOT}/go2_dt/ros2_ws"
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 export ROBOT_IP=192.168.12.1
@@ -84,7 +87,6 @@ The SDK remaps `cmd_vel_out -> cmd_vel`, so the patrol publishes to `/cmd_vel_ou
 python3 zone_loop_patrol_v3.py --ros-args \
   -p mode:=teach \
   -p cmd_topic:=/cmd_vel_out \
-  -p output_file:=<repo-root>/go2_dt/ros2_ws/phase_trained_lap.json \
   -p apriltag_camera_device:=/dev/video0 \
   -p apriltag_id:=0
 ```
@@ -97,7 +99,6 @@ Controls: `C` set zero, `W/S/A/D/Q/E` movement phases, `X` stop phase, `G` save.
 python3 zone_loop_patrol_v3.py --ros-args \
   -p mode:=auto \
   -p cmd_topic:=/cmd_vel_out \
-  -p input_file:=<repo-root>/go2_dt/ros2_ws/phase_trained_lap.json \
   -p repeat_auto:=true \
   -p enable_camera_stop:=true \
   -p enable_mmwave_stop:=true \
