@@ -2,8 +2,7 @@
 
 PC_IP="$1"
 PC_USER="$2"
-
-PC_FILE="/home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt"
+PC_FILE="$3"
 KEY="/root/.ssh/id_rsa_dropbear"
 
 MAC_BIN="/tmp/ap_mac.bin"
@@ -16,8 +15,8 @@ LOCKDIR="/tmp/csi_05s_single.lock"
 PERIOD_S="0.5"
 AFTER_TRIGGER_SLEEP_S="0.2"
 
-if [ -z "$PC_IP" ] || [ -z "$PC_USER" ]; then
-  echo "[CSI][ERROR] Uso: $0 <PC_IP> <PC_USER>" >&2
+if [ -z "$PC_IP" ] || [ -z "$PC_USER" ] || [ -z "$PC_FILE" ]; then
+  echo "[CSI][ERROR] Uso: $0 <PC_IP> <PC_USER> <PC_FILE>" >&2
   exit 1
 fi
 
