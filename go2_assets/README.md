@@ -232,26 +232,21 @@ find go2_assets -type f -size +50M -printf '%s %p\n' | sort -nr | numfmt --field
 
 ## 8. Mounting rule
 
-The Docker command should mount the project root as `/workspace`:
+The host clone may live anywhere. From the repository root:
 
 ```bash
--v <repo-root>:/workspace:rw
+REPO_ROOT="$(pwd)"
 ```
 
-or, if using the clean repository directly:
+mount that directory into Isaac as:
 
 ```bash
--v <repo-root>:/workspace:rw
+-v "${REPO_ROOT}:/workspace:rw"
 ```
 
-The sync script uses hardcoded `/workspace` paths for camera and LiDAR JSON files:
+`/workspace` is only the stable **container-internal** mount point. The host does not need a directory named `/workspace`.
 
-```text
-/workspace/go2_dt/ros2_ws/lidar_outputs/live_lidar_state.json
-/workspace/go2_dt/camera_yolo/outputs/live_camera_state.json
-```
-
-Therefore, the following must exist inside the container:
+The sync script derives its JSON paths from that container mount root (or from `GO2_WORKSPACE_ROOT` if explicitly overridden). Inside Isaac the repository therefore appears as:
 
 ```text
 /workspace/go2_dt
