@@ -220,7 +220,7 @@ go2_dt/media/golden_test.mp4
 During the AP13/STA12/Raspi setup, the PC/Spark provisions the Raspberry Pi automatically:
 
 ```text
-/home/system/raspi_60ghz_demo/
+~/raspi_60ghz_demo/
 ├── raspi_60ghz_sender.sh
 ├── iperf_client_loop.sh
 └── mp4_loop_tx_6002.sh
@@ -307,7 +307,7 @@ After setup, the important checks are:
 
 ```bash
 ssh "${RASPI_USER:-nextnet}@<raspi-management-ip>" \
-  'ls -lh /home/system/raspi_60ghz_demo/ && ls -lh ~/raspi_60ghz_demo/golden_test.mp4'
+  'ls -lh ~/raspi_60ghz_demo/ && ls -lh ~/raspi_60ghz_demo/golden_test.mp4'
 
 ssh nextnet@<raspi-management-ip> \
   "ssh root@192.168.1.12 'ls -lh /root/scripts_csi_dog/'"
