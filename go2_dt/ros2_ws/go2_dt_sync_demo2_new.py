@@ -4,6 +4,7 @@ import builtins
 import json
 import os
 import time
+from pathlib import Path
 
 import omni.usd
 import omni.kit.app
@@ -36,6 +37,12 @@ ENABLE_SENSOR_PERSON_VISIBILITY = True
 # recalibra el anchor real->Isaac.
 ENABLE_PATROL_ANCHOR_RESET = True
 
+# The host repository is mounted into the Isaac container by the launcher.
+# /workspace is an internal container mount point, not a host filesystem path.
+WORKSPACE_ROOT = Path(os.environ.get("GO2_WORKSPACE_ROOT", "/workspace")).resolve()
+GO2_ROOT = WORKSPACE_ROOT / "go2_dt"
+
+
 
 # ============================================================
 # FIXED START POSE IN ISAAC
@@ -56,11 +63,10 @@ REAL_TO_ISAAC_SCALE_Y = 1.25
 # PATROL / APRILTAG ANCHOR RESET CONFIG
 # ============================================================
 
-PATROL_STATE_JSON_PATH = "/workspace/go2_dt/ros2_ws/patrol_outputs/live_patrol_state.json"
+PATROL_STATE_JSON_PATH = str(GO2_ROOT / "ros2_ws" / "patrol_outputs" / "live_patrol_state.json")
 
 PATROL_STATE_JSON_FALLBACK_PATHS = [
-    "/workspace/go2_dt/ros2_ws/patrol_outputs/live_patrol_state.json",
-    "/home/nextnet/AlbertoDir/go2_dt/ros2_ws/patrol_outputs/live_patrol_state.json",
+    PATROL_STATE_JSON_PATH,
 ]
 
 PATROL_POLL_INTERVAL_SEC = 0.10
@@ -80,11 +86,10 @@ PATROL_ANCHOR_DEBUG_LOGS = True
 # mmWave / CSI PREDICTION CONFIG
 # ============================================================
 
-MMWAVE_STATE_JSON_PATH = "/home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json"
+MMWAVE_STATE_JSON_PATH = str(GO2_ROOT / "csi_dog_dataset_20210421_181125" / "analysis_outputs" / "live_prediction_state.json")
 
 MMWAVE_STATE_JSON_FALLBACK_PATHS = [
-    "/home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json",
-    "/workspace/go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json",
+    MMWAVE_STATE_JSON_PATH,
 ]
 
 MMWAVE_PERSON_PRIM_PATH = "/World/person_1"
@@ -103,10 +108,10 @@ MMWAVE_HIDE_WHEN_STALE = True
 # OTHER SENSOR JSONS
 # ============================================================
 
-LIDAR_STATE_JSON_PATH = "/workspace/go2_dt/ros2_ws/lidar_outputs/live_lidar_state.json"
+LIDAR_STATE_JSON_PATH = str(GO2_ROOT / "ros2_ws" / "lidar_outputs" / "live_lidar_state.json")
 LIDAR_PERSON_PRIM_PATH = "/World/person_02"
 
-CAMERA_STATE_JSON_PATH = "/workspace/go2_dt/camera_yolo/outputs/live_camera_state.json"
+CAMERA_STATE_JSON_PATH = str(GO2_ROOT / "camera_yolo" / "outputs" / "live_camera_state.json")
 CAMERA_PERSON_PRIM_PATH = "/World/person_03"
 
 SENSOR_STATE_MAX_AGE_SEC = 2.0
