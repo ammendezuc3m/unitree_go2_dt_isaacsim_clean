@@ -112,7 +112,7 @@ def main():
     parser.add_argument(
         "--model",
         type=Path,
-        default=CSI_PROJECT_DIR / "analysis_outputs/csi_empty_person_model_new_1001_1500.joblib",
+        default=CSI_PROJECT_DIR / "analysis_outputs/csi_empty_person_model_20260526_all_1_2200.joblib",
     )
     parser.add_argument(
         "--state-json",
