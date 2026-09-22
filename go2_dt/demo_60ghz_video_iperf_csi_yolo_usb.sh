@@ -567,7 +567,7 @@ rm -f /tmp/csi_05s_single.out /tmp/csi_05s_single.pid
 (
 
 
-  sh '${CSI_REMOTE_SCRIPT}' '${LOCAL_VIDEO_IP_PLAIN}' '${USER}'
+  sh '${CSI_REMOTE_SCRIPT}' '${LOCAL_VIDEO_IP_PLAIN}' '${USER}' '${CSI_STREAM_FILE}'
 ) >/tmp/csi_05s_single.out 2>&1 &
 
 echo \$! > /tmp/csi_05s_single.pid
