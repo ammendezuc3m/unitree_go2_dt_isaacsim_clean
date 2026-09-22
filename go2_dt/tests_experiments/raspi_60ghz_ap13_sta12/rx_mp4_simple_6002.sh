@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -u
 
-cd /home/nextnet/AlbertoDir/go2_dt
+cd "${GO2_ROOT}"
 
 echo "[RX-MP4-SIMPLE] esperando RTP/H264 en UDP port=6002"
 
