@@ -54,7 +54,7 @@ LOCAL_IFACE="enP7s7"
 SPARK_IP="172.16.12.170"
 RASPI_HOST="172.16.13.100"
 RASPI_USER="${RASPI_USER:-nextnet}"
-RASPI_RUNTIME_DIR="${RASPI_RUNTIME_DIR:-${RASPI_RUNTIME_DIR}}"
+RASPI_RUNTIME_DIR="${RASPI_RUNTIME_DIR:-/home/${RASPI_USER}/raspi_60ghz_demo}"
 
 detect_raspi_mgmt_host() {
   local candidates=(
@@ -92,7 +92,7 @@ if [ -z "${RASPI_MGMT_HOST:-}" ]; then
   echo "[ERROR] Comprueba manualmente:"
   echo "  ping -c 3 192.168.1.100"
   echo "  ping -c 3 10.39.251.226"
-  echo "  ssh nextnet@192.168.1.100"
+  echo "  ssh ${RASPI_USER}@192.168.1.100"
   exit 1
 fi
 
@@ -451,7 +451,7 @@ echo '[CSI] destino='\"\${CSI_OUT}\" | tee -a \"\${CSI_LOG}\"
 echo '[CSI] log='\"\${CSI_LOG}\" | tee -a \"\${CSI_LOG}\"
 echo '[CSI] Spark -> Raspi WiFi -> STA .12' | tee -a \"\${CSI_LOG}\"
 
-ssh -o ConnectTimeout=8 nextnet@'${RASPI_MGMT_HOST}' \\
+ssh -o ConnectTimeout=8 ${RASPI_USER}@'${RASPI_MGMT_HOST}' \\
   \"ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa root@192.168.1.12 '/root/scripts_csi_dog/stream_csi_stdout_05s_ap13.sh'\" \\
   2> >(tee -a \"\${CSI_LOG}\" >&2) \\
   | tee -a \"\${CSI_OUT}\"
@@ -517,10 +517,10 @@ RTP_MTU='\${RTP_MTU:-1200}'
 
 echo '[MP4-LOOP] Raspi='\"\${RASPI_HOST}\"' Spark='\"\${SPARK_IP}\"' file='\"\${MP4_FILE}\"' port='\"\${MP4_PORT}\"
 
-ssh -o ConnectTimeout=8 nextnet@\"\${RASPI_HOST}\" \\
+ssh -o ConnectTimeout=8 ${RASPI_USER}@\"\${RASPI_HOST}\" \\
   \"pkill -9 -f 'gst-launch-1.0.*filesrc' 2>/dev/null || true\"
 
-ssh -o ConnectTimeout=8 nextnet@\"\${RASPI_HOST}\" bash -s <<REMOTE_MP4
+ssh -o ConnectTimeout=8 ${RASPI_USER}@\"\${RASPI_HOST}\" bash -s <<REMOTE_MP4
 set -Eeuo pipefail
 
 SPARK_IP='${SPARK_IP}'
@@ -687,7 +687,7 @@ launch_raspi_mp4_loop_clean_final() {
 set -e
 
 echo '[MP4-LOOP-WINDOW] Conectando a Raspi ${RASPI_HOST}...'
-ssh -o ConnectTimeout=8 nextnet@'${RASPI_HOST}' '
+ssh -o ConnectTimeout=8 ${RASPI_USER}@'${RASPI_HOST}' '
 pkill -9 -f \"gst-launch-1.0.*filesrc\" 2>/dev/null || true
 pkill -9 -f \"mp4_loop_tx_6002.sh\" 2>/dev/null || true
 
