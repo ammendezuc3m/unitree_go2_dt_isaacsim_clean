@@ -674,7 +674,7 @@ LOG_FILE='${GO2_ROOT}/debug_logs/video_20mbps_yolo_usb_'\$(date +%Y%m%d_%H%M%S)'
   --yolo-person-min-area-ratio '${YOLO_PERSON_MIN_AREA_RATIO}' \
   --yolo-person-min-aspect-ratio '${YOLO_PERSON_MIN_ASPECT_RATIO}' \
   --yolo-tsize '${YOLO_TSIZE}' \
-  $([[ '${YOLO_FP16}' == 'true' ]] && echo '') \
+  $([[ '${YOLO_FP16}' == 'true' ]] && echo '--yolo-fp16') \
   --verbose 2>&1 | tee -a \"\${LOG_FILE}\"
 "
 }
