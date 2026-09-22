@@ -680,7 +680,7 @@ if radio_ok; then
     sleep 4
   done
 else
-  warn "Radio no OK tras setup base. Inicio reintentos limpios."
+  warn "Radio no OK tras la configuración inicial. Inicio reintentos limpios."
 fi
 
 for i in $(seq 1 "${MAX_RADIO_RETRIES}"); do
