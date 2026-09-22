@@ -170,10 +170,14 @@ This automatic deployment covers the **live streamer only**. The dataset helpers
 
 ## 3.6 Manual tests
 
-Live streamer, executed on STA12:
+Live streamer manual test from the PC/Spark repository root:
 
 ```bash
-/root/scripts_csi_dog/stream_csi_live_05s_single.sh 192.168.1.170 nextnet
+REPO_ROOT="$(pwd)"
+CSI_STREAM_FILE="${REPO_ROOT}/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt"
+
+ssh root@192.168.1.12 \
+  "/root/scripts_csi_dog/stream_csi_live_05s_single.sh 192.168.1.170 '${USER}' '${CSI_STREAM_FILE}'"
 ```
 
 Finite dataset capture, executed on STA12:
