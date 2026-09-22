@@ -10,7 +10,7 @@ CAMERA_FPS="${CAMERA_FPS:-15}"
 CAMERA_BITRATE_KBPS="${CAMERA_BITRATE_KBPS:-2000}"
 CAMERA_PORT="${CAMERA_PORT:-6000}"
 
-MP4_FILE="${MP4_FILE:-/home/nextnet/raspi_60ghz_demo/golden_test.mp4}"
+MP4_FILE="${MP4_FILE:-${HOME}/raspi_60ghz_demo/golden_test.mp4}"
 USE_SAFE_MP4_LOOP="${USE_SAFE_MP4_LOOP:-1}"
 MP4_WIDTH="${MP4_WIDTH:-1280}"
 MP4_HEIGHT="${MP4_HEIGHT:-720}"
@@ -27,7 +27,7 @@ IPERF_MODE="${IPERF_MODE:-tcp}"
 IPERF_DURATION="${IPERF_DURATION:-3600}"
 IPERF_UDP_LENGTH="${IPERF_UDP_LENGTH:-1200}"
 
-LOG_DIR="/home/nextnet/raspi_60ghz_demo/logs"
+LOG_DIR="${LOG_DIR:-${HOME}/raspi_60ghz_demo/logs}"
 mkdir -p "$LOG_DIR"
 
 echo "[raspi-tx] Cleaning old processes..."
