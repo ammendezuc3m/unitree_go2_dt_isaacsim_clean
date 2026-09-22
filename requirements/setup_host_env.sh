@@ -21,6 +21,24 @@ if [[ ! -f "${REQ_FILE}" ]]; then
   exit 1
 fi
 
+if ! command -v git >/dev/null 2>&1; then
+  err "git no está instalado."
+  exit 1
+fi
+
+if ! command -v git-lfs >/dev/null 2>&1 && ! git lfs version >/dev/null 2>&1; then
+  err "Git LFS no está instalado."
+  err "Instálalo con: sudo apt install git-lfs"
+  exit 1
+fi
+
+log "Inicializando Git LFS y descargando assets..."
+cd "${REPO_ROOT}"
+git lfs install --local
+git lfs pull
+
+bash "${REPO_ROOT}/requirements/check_lfs_assets.sh"
+
 log "Creando/actualizando entorno: ${VENV_DIR}"
 python3 -m venv --system-site-packages "${VENV_DIR}"
 
