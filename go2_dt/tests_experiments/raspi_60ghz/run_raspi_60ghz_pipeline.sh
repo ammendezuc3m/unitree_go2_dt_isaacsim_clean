@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-GO2_ROOT="${GO2_ROOT:-/home/nextnet/AlbertoDir/go2_dt}"
+SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GO2_ROOT="${GO2_ROOT:-$(cd "${SCRIPT_DIR}/../.." && pwd)}"
 REPO_ROOT="$(cd "${GO2_ROOT}/.." && pwd)"
 PROJECT_PYTHON="${REPO_ROOT}/.venv/bin/python"
 
