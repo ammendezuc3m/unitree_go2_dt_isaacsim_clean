@@ -191,7 +191,7 @@ Repeated dataset capture:
 Verify the live file on the PC/Spark:
 
 ```bash
-tail -f <repo-root>/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
+tail -f go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
 ```
 
 ---
@@ -301,8 +301,8 @@ AP13 does not need the CSI capture scripts: its required `hostapd` configuration
 After setup, the important checks are:
 
 ```bash
-ssh nextnet@<raspi-management-ip> \
-  'ls -lh /home/system/raspi_60ghz_demo/ && ls -lh /home/nextnet/raspi_60ghz_demo/golden_test.mp4'
+ssh "${RASPI_USER:-nextnet}@<raspi-management-ip>" \
+  'ls -lh /home/system/raspi_60ghz_demo/ && ls -lh ~/raspi_60ghz_demo/golden_test.mp4'
 
 ssh nextnet@<raspi-management-ip> \
   "ssh root@192.168.1.12 'ls -lh /root/scripts_csi_dog/'"
