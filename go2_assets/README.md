@@ -172,7 +172,7 @@ go2_assets/
     └── room_with_go2.usd
 ```
 
-Large `.obj`, texture and `.usd` files should be tracked carefully. If a file is large, consider Git LFS.
+Large binary/asset formats in this repository are already covered by the root `.gitattributes` Git LFS rules. After cloning, run `git lfs pull` before opening the validated Isaac scene.
 
 ---
 
@@ -192,26 +192,34 @@ Once arranged, save the stage under `go2_assets/`.
 
 ## 7. Adding a scenario to GitHub
 
-If the scenario is small enough:
+The root `.gitattributes` already routes `.usd`, `.usda`, `.usdc`, `.obj`, textures and the other configured large-asset formats through Git LFS.
 
-```bash
-git add go2_assets/go2/prueba_demo2_new_scenario.usd
-git commit -m "Add example Isaac Sim scenario"
-git push
-```
-
-If the scenario is large, use Git LFS:
+Before adding a scene:
 
 ```bash
 git lfs install
-git lfs track "*.usd"
-git lfs track "*.usda"
-git lfs track "*.usdc"
-git lfs track "*.obj"
-git add .gitattributes
+git check-attr filter -- go2_assets/go2/prueba_demo2_new_scenario.usd
+```
+
+The expected result contains:
+
+```text
+filter: lfs
+```
+
+Then add and push normally:
+
+```bash
 git add go2_assets/go2/prueba_demo2_new_scenario.usd
-git commit -m "Add example Isaac Sim scenario with LFS"
+git commit -m "Add Isaac Sim scenario"
 git push
+```
+
+On another machine, materialize it with:
+
+```bash
+git lfs pull
+bash requirements/check_lfs_assets.sh
 ```
 
 Before pushing, check size:
