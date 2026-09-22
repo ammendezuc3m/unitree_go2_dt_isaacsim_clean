@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-GO2_ROOT="${GO2_ROOT:-/home/nextnet/AlbertoDir/go2_dt}"
+SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GO2_ROOT="${GO2_ROOT:-$(cd "${SCRIPT_DIR}/../.." && pwd)}"
 REPO_ROOT="$(cd "${GO2_ROOT}/.." && pwd)"
 PROJECT_PYTHON="${REPO_ROOT}/.venv/bin/python"
 
 CSI_LIVE_PREDICTOR="${CSI_LIVE_PREDICTOR:-${GO2_ROOT}/csi_live_predictor_from_stream.py}"
 CSI_STREAM_FILE="${CSI_STREAM_FILE:-${GO2_ROOT}/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt}"
-CSI_MODEL="${CSI_MODEL:-${GO2_ROOT}/csi_dog_dataset_20210421_181125/analysis_outputs/csi_empty_person_model_new_1001_1500.joblib}"
+CSI_MODEL="${CSI_MODEL:-${GO2_ROOT}/csi_dog_dataset_20210421_181125/analysis_outputs/csi_empty_person_model_20260526_all_1_2200.joblib}"
 CSI_STATE_JSON="${CSI_STATE_JSON:-${GO2_ROOT}/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json}"
 CSI_PREDICTIONS_CSV="${CSI_PREDICTIONS_CSV:-${GO2_ROOT}/csi_dog_dataset_20210421_181125/analysis_outputs/live_predictions_external_stream.csv}"
 
