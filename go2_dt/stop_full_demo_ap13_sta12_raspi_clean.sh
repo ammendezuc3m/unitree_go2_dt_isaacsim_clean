@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-# /home/nextnet/AlbertoDir/go2_dt/stop_full_demo_ap13_sta12_raspi_clean.sh
+# Portable: host paths are derived from this script location.
 set -u
 
-GO2_ROOT="/home/nextnet/AlbertoDir/go2_dt"
+SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GO2_ROOT="${SCRIPT_DIR}"
 
 RASPI_HOST="${RASPI_HOST:-172.16.13.100}"
 RASPI_USER="${RASPI_USER:-nextnet}"
@@ -152,7 +153,7 @@ pkill -9 -f "iperf_client_loop.sh" 2>/dev/null || true
 pkill -9 -f "gst-launch-1.0" 2>/dev/null || true
 pkill -9 -f "iperf3" 2>/dev/null || true
 rm -f /home/system/raspi_60ghz_demo/logs/*.pid 2>/dev/null || true
-rm -f /home/nextnet/raspi_60ghz_demo/logs/*.pid 2>/dev/null || true
+rm -f "/home/${RASPI_USER:-nextnet}/raspi_60ghz_demo/logs/"*.pid 2>/dev/null || true
 echo RASPI_DEMO_STOPPED
 ' 2>/dev/null || warn "No pude parar Raspi por ${RASPI_HOST}"
 
