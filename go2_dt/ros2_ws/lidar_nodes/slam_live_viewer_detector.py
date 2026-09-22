@@ -24,6 +24,8 @@ def yaw_from_quat(q) -> float:
     return math.atan2(siny_cosp, cosy_cosp)
 
 
+ROS_WS_ROOT = Path(__file__).resolve().parents[1]
+
 class SlamLiveViewerDetector(Node):
     def __init__(self):
         super().__init__("slam_live_viewer_detector")
@@ -35,12 +37,12 @@ class SlamLiveViewerDetector(Node):
 
         self.declare_parameter(
             "state_path",
-            "/home/nextnet/AlbertoDir/go2_dt/ros2_ws/lidar_outputs/live_lidar_state.json",
+            str(ROS_WS_ROOT / "lidar_outputs" / "live_lidar_state.json"),
         )
 
         self.declare_parameter(
             "baseline_path",
-            "/home/nextnet/AlbertoDir/go2_dt/ros2_ws/lidar_outputs/static_baseline_slam.npz",
+            str(ROS_WS_ROOT / "lidar_outputs" / "static_baseline_slam.npz"),
         )
 
         self.declare_parameter("window_size_px", 900)
