@@ -4,6 +4,7 @@ import math
 import os
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 import rclpy
@@ -40,9 +41,12 @@ STATIC_WALLS: Set[Tuple[int, int]] = {
 # SENSOR JSON PATHS
 # ============================================================
 
-DEFAULT_MMWAVE_JSON = "/home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json"
-DEFAULT_CAMERA_JSON = "/home/nextnet/AlbertoDir/go2_dt/camera_yolo/outputs/live_camera_state.json"
-DEFAULT_LIDAR_JSON = "/home/nextnet/AlbertoDir/go2_dt/ros2_ws/lidar_outputs/live_lidar_state.json"
+GO2_ROOT = Path(__file__).resolve().parents[4]
+ROS_WS_ROOT = GO2_ROOT / "ros2_ws"
+
+DEFAULT_MMWAVE_JSON = str(GO2_ROOT / "csi_dog_dataset_20210421_181125" / "analysis_outputs" / "live_prediction_state.json")
+DEFAULT_CAMERA_JSON = str(GO2_ROOT / "camera_yolo" / "outputs" / "live_camera_state.json")
+DEFAULT_LIDAR_JSON = str(ROS_WS_ROOT / "lidar_outputs" / "live_lidar_state.json")
 
 MMWAVE_OCCUPIED_LABELS = {
     "person",
