@@ -4,6 +4,7 @@ import math
 import os
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 import rclpy
@@ -41,6 +42,9 @@ HIDDEN_OBSTACLE_TILES: Set[Tuple[int, int]] = {
 }
 
 OBSTACLE_LABELS = {"turtlebot", "person_1"}
+
+GO2_ROOT = Path(__file__).resolve().parents[4]
+DEFAULT_CSI_STATE_JSON = GO2_ROOT / "csi_dog_dataset_20210421_181125" / "analysis_outputs" / "live_prediction_state.json"
 
 
 # ============================================================
@@ -142,7 +146,7 @@ class GridRouteWalkNode(Node):
         self.declare_parameter("odom_topic", "/odom")
         self.declare_parameter(
             "csi_state_json",
-            "/home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json",
+            str(DEFAULT_CSI_STATE_JSON),
         )
         self.declare_parameter("loop_hz", 20.0)
         self.declare_parameter("csi_poll_hz", 5.0)
