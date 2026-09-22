@@ -42,8 +42,25 @@ log() {
 open_terminal() {
   local title="$1"
   local cmd="$2"
-  gnome-terminal --title="$title" -- bash -lc "$cmd; echo; echo '[${title}] terminado. Pulsa Enter para cerrar.'; read -r" &
+
+  if command -v gnome-terminal >/dev/null 2>&1; then
+    gnome-terminal --title="$title" -- bash -lc "$cmd; echo; echo '[${title}] terminado. Pulsa Enter para cerrar.'; read -r" &
+  elif command -v xterm >/dev/null 2>&1; then
+    xterm -T "$title" -e bash -lc "$cmd; echo; echo '[${title}] terminado. Pulsa Enter para cerrar.'; read -r" &
+  elif command -v konsole >/dev/null 2>&1; then
+    konsole --new-tab --workdir "$GO2_ROOT" -p tabtitle="$title" -e bash -lc "$cmd; echo; echo '[${title}] terminado. Pulsa Enter para cerrar.'; read -r" &
+  else
+    echo "[raspi-pipeline][ERROR] No encuentro gnome-terminal, xterm ni konsole." >&2
+    exit 1
+  fi
 }
+
+if ! command -v gnome-terminal >/dev/null 2>&1 && \
+   ! command -v xterm >/dev/null 2>&1 && \
+   ! command -v konsole >/dev/null 2>&1; then
+  echo "[raspi-pipeline][ERROR] Se necesita gnome-terminal, xterm o konsole." >&2
+  exit 1
+fi
 
 cd "${GO2_ROOT}"
 
