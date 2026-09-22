@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-GO2_ROOT = Path(__file__).resolve().parents[2]
-
 import argparse
 import json
 import os
 import sys
 import time
 from pathlib import Path
+
+GO2_ROOT = Path(__file__).resolve().parents[2]
 
 import cv2
 import numpy as np
