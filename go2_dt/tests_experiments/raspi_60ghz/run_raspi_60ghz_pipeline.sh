@@ -8,6 +8,7 @@ PROJECT_PYTHON="${REPO_ROOT}/.venv/bin/python"
 
 RASPI_HOST="${RASPI_HOST:-172.16.13.100}"
 RASPI_USER="${RASPI_USER:-nextnet}"
+RASPI_RUNTIME_DIR="${RASPI_RUNTIME_DIR:-/home/${RASPI_USER}/raspi_60ghz_demo}"
 SPARK_IP="${SPARK_IP:-172.16.12.170}"
 STA_MGMT_HOST="${STA_MGMT_HOST:-192.168.1.12}"
 
@@ -163,11 +164,11 @@ IPERF_MODE='${IPERF_MODE}' \
 IPERF_BITRATE='${IPERF_BITRATE}' \
 IPERF_PORT='${IPERF_PORT}' \
 IPERF_DURATION='3600' \
-/home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh
+${RASPI_RUNTIME_DIR}/raspi_60ghz_sender.sh
 "
 
 log "Todo lanzado."
 log "Logs Raspi:"
-log "  ssh ${RASPI_USER}@${RASPI_HOST} 'tail -f /home/system/raspi_60ghz_demo/logs/*.log'"
+log "  ssh ${RASPI_USER}@${RASPI_HOST} 'tail -f ${RASPI_RUNTIME_DIR}/logs/*.log'"
 log "Stop:"
 log "  RASPI_HOST=${RASPI_HOST} ${GO2_ROOT}/tests_experiments/raspi_60ghz/stop_raspi_60ghz_pipeline.sh"
