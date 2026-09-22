@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 # ============================================================
 # FULL DEMO - AP13/STA12 RASPI STACK
-# /home/nextnet/AlbertoDir/go2_dt/run_full_demo_ap13_sta12_raspi.sh
+# Portable: host paths are derived from this script location.
 # Isaac Sim + Go2 SLAM
 # + Raspi -> AP .13 -> 60GHz -> STA .12 -> Spark
 # + MP4 RX + camera YOLO RX + iperf + local RX throughput
@@ -21,11 +21,12 @@ set -Eeuo pipefail
 #     STA .12 -> Spark
 # ============================================================
 
-USER_HOME="${HOME}"
-GO2_ROOT="${USER_HOME}/AlbertoDir/go2_dt"
-ROS_WS="${GO2_ROOT}/ros2_ws"
+SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GO2_ROOT="${SCRIPT_DIR}"
 REPO_ROOT="$(cd "${GO2_ROOT}/.." && pwd)"
+ROS_WS="${GO2_ROOT}/ros2_ws"
 VENV_DIR="${REPO_ROOT}/.venv"
+ISAAC_DATA_ROOT="${REPO_ROOT}/.isaac51"
 CSI_LIVE_PREDICTOR="${GO2_ROOT}/csi_live_predictor_from_stream.py"
 CSI_VOTE_THRESHOLD="2"
 CSI_VOTE_WINDOW="3"
@@ -315,6 +316,10 @@ launch_isaac() {
   log "Lanzando Isaac Sim..."
 
   xhost +local:docker >/dev/null 2>&1 || true
+  mkdir -p "${ISAAC_DATA_ROOT}/cache/main/ov" "${ISAAC_DATA_ROOT}/cache/main/warp" \
+           "${ISAAC_DATA_ROOT}/cache/computecache" "${ISAAC_DATA_ROOT}/config" \
+           "${ISAAC_DATA_ROOT}/data/documents" "${ISAAC_DATA_ROOT}/data/Kit" \
+           "${ISAAC_DATA_ROOT}/logs"
 
   open_terminal "T1 - Isaac Sim 5.1" "
 set -e
@@ -336,14 +341,14 @@ docker run --rm -it \\
   -e XAUTHORITY=\$XAUTHORITY \\
   -v /tmp/.X11-unix:/tmp/.X11-unix:rw \\
   -v \$XAUTHORITY:\$XAUTHORITY:rw \\
-  -v ~/AlbertoDir/isaac51/cache/main/ov:/home/ubuntu/.cache/ov:rw \\
-  -v ~/AlbertoDir/isaac51/cache/main/warp:/home/ubuntu/.cache/warp:rw \\
-  -v ~/AlbertoDir/isaac51/cache/computecache:/home/ubuntu/.nv/ComputeCache:rw \\
-  -v ~/AlbertoDir/isaac51/config:/home/ubuntu/.nvidia-omniverse/config:rw \\
-  -v ~/AlbertoDir/isaac51/data/documents:/home/ubuntu/Documents:rw \\
-  -v ~/AlbertoDir/isaac51/data/Kit:/home/ubuntu/.local/share/ov/data/Kit:rw \\
-  -v ~/AlbertoDir/isaac51/logs:/home/ubuntu/.nvidia-omniverse/logs:rw \\
-  -v ~/AlbertoDir:/workspace:rw \\
+  -v '${ISAAC_DATA_ROOT}/cache/main/ov:/home/ubuntu/.cache/ov:rw' \\
+  -v '${ISAAC_DATA_ROOT}/cache/main/warp:/home/ubuntu/.cache/warp:rw' \\
+  -v '${ISAAC_DATA_ROOT}/cache/computecache:/home/ubuntu/.nv/ComputeCache:rw' \\
+  -v '${ISAAC_DATA_ROOT}/config:/home/ubuntu/.nvidia-omniverse/config:rw' \\
+  -v '${ISAAC_DATA_ROOT}/data/documents:/home/ubuntu/Documents:rw' \\
+  -v '${ISAAC_DATA_ROOT}/data/Kit:/home/ubuntu/.local/share/ov/data/Kit:rw' \\
+  -v '${ISAAC_DATA_ROOT}/logs:/home/ubuntu/.nvidia-omniverse/logs:rw' \\
+  -v '${REPO_ROOT}:/workspace:rw' \\
   --entrypoint /bin/bash \\
   nvcr.io/nvidia/isaac-sim:5.1.0 \\
   -lc 'cd /isaac-sim && ./runapp.sh'
