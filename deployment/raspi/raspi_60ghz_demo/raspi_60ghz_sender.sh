@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 SPARK_IP="${SPARK_IP:-172.16.12.170}"
 
 CAMERA_DEVICE="${CAMERA_DEVICE:-/dev/video0}"
@@ -10,7 +12,7 @@ CAMERA_FPS="${CAMERA_FPS:-15}"
 CAMERA_BITRATE_KBPS="${CAMERA_BITRATE_KBPS:-2000}"
 CAMERA_PORT="${CAMERA_PORT:-6000}"
 
-MP4_FILE="${MP4_FILE:-${HOME}/raspi_60ghz_demo/golden_test.mp4}"
+MP4_FILE="${MP4_FILE:-${SCRIPT_DIR}/golden_test.mp4}"
 USE_SAFE_MP4_LOOP="${USE_SAFE_MP4_LOOP:-1}"
 MP4_WIDTH="${MP4_WIDTH:-1280}"
 MP4_HEIGHT="${MP4_HEIGHT:-720}"
@@ -27,7 +29,7 @@ IPERF_MODE="${IPERF_MODE:-tcp}"
 IPERF_DURATION="${IPERF_DURATION:-3600}"
 IPERF_UDP_LENGTH="${IPERF_UDP_LENGTH:-1200}"
 
-LOG_DIR="${LOG_DIR:-${HOME}/raspi_60ghz_demo/logs}"
+LOG_DIR="${LOG_DIR:-${SCRIPT_DIR}/logs}"
 mkdir -p "$LOG_DIR"
 
 echo "[raspi-tx] Cleaning old processes..."
@@ -46,14 +48,14 @@ if [[ "${ENABLE_IPERF:-1}" == "1" ]]; then
   pkill -9 -f "iperf_client_loop.sh" 2>/dev/null || true
   pkill -9 -f "iperf3.*${SPARK_IP}" 2>/dev/null || true
 
-  if [[ -x /home/system/raspi_60ghz_demo/iperf_client_loop.sh ]]; then
+  if [[ -x ${SCRIPT_DIR}/iperf_client_loop.sh ]]; then
     SPARK_IP="${SPARK_IP}" \
     IPERF_PORT="${IPERF_PORT}" \
     IPERF_BITRATE="${IPERF_BITRATE}" \
     IPERF_MODE="${IPERF_MODE}" \
     IPERF_DURATION="${IPERF_DURATION}" \
     IPERF_UDP_LENGTH="${IPERF_UDP_LENGTH}" \
-    /home/system/raspi_60ghz_demo/iperf_client_loop.sh \
+    ${SCRIPT_DIR}/iperf_client_loop.sh \
       > "${LOG_DIR}/iperf_client.log" 2>&1 &
 
     echo $! > "${LOG_DIR}/iperf_client.pid"
@@ -61,7 +63,7 @@ if [[ "${ENABLE_IPERF:-1}" == "1" ]]; then
     # Avoid launching the legacy iperf block too.
     ENABLE_IPERF=0
   else
-    echo "[raspi-tx][WARN] /home/system/raspi_60ghz_demo/iperf_client_loop.sh not found; using direct iperf3 block"
+    echo "[raspi-tx][WARN] ${SCRIPT_DIR}/iperf_client_loop.sh not found; using direct iperf3 block"
   fi
 fi
 
@@ -85,7 +87,7 @@ fi
 if [[ "${ENABLE_MP4}" == "1" ]]; then
   if [[ ! -f "${MP4_FILE}" ]]; then
     echo "[raspi-tx][ERROR] MP4 no existe: ${MP4_FILE}" | tee "${LOG_DIR}/mp4_tx.log"
-  elif [[ "${USE_SAFE_MP4_LOOP}" == "1" && -x /home/system/raspi_60ghz_demo/mp4_loop_tx_6002.sh ]]; then
+  elif [[ "${USE_SAFE_MP4_LOOP}" == "1" && -x ${SCRIPT_DIR}/mp4_loop_tx_6002.sh ]]; then
     echo "[raspi-tx] Starting persistent MP4 loop..."
 
     pkill -9 -f "mp4_loop_tx_6002.sh" 2>/dev/null || true
@@ -98,7 +100,7 @@ if [[ "${ENABLE_MP4}" == "1" ]]; then
     MP4_HEIGHT="${MP4_HEIGHT}" \
     MP4_FPS="${MP4_FPS}" \
     MP4_BITRATE_KBPS="${MP4_BITRATE_KBPS}" \
-    /home/system/raspi_60ghz_demo/mp4_loop_tx_6002.sh \
+    ${SCRIPT_DIR}/mp4_loop_tx_6002.sh \
       > "${LOG_DIR}/mp4_tx.log" 2>&1 &
 
     echo $! > "${LOG_DIR}/mp4_tx.pid"
