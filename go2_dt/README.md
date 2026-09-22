@@ -20,7 +20,7 @@ Before running any official launcher on a clean machine, create the repository-l
 ## Current/no-Raspi run
 
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt
+cd go2_dt
 ./run_full_demo_current.sh
 ```
 
@@ -33,7 +33,7 @@ Stop:
 ## Raspi run
 
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt
+cd go2_dt
 
 RASPI_MGMT_HOST=10.39.251.226 \
 RASPI_USER=nextnet \
