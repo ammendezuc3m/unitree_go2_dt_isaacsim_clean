@@ -14,7 +14,7 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    ws_root = Path(os.path.expanduser("~/AlbertoDir/go2_dt/ros2_ws"))
+    ws_root = Path(__file__).resolve().parents[1]
 
     robot_ip = os.getenv("ROBOT_IP", "192.168.12.1")
     robot_token = os.getenv("ROBOT_TOKEN", "")
@@ -207,7 +207,7 @@ def generate_launch_description():
                 "--ros-args",
                 "-p", "map_topic:=/map",
                 "-p", "scan_topic:=/scan",
-                "-p", "state_path:=/home/nextnet/AlbertoDir/go2_dt/ros2_ws/lidar_outputs/live_lidar_state.json",
+                "-p", f"state_path:={ws_root / 'lidar_outputs' / 'live_lidar_state.json'}",
 
                 "-p", "map_frame:=map",
                 "-p", "base_frame:=base_link",
