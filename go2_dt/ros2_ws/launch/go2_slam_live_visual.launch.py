@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription
@@ -10,7 +11,7 @@ from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
-    ws = os.path.expanduser("~/AlbertoDir/go2_dt/ros2_ws")
+    ws = Path(__file__).resolve().parents[1]
 
     robot_ip = os.getenv("ROBOT_IP", "192.168.12.1")
     robot_token = os.getenv("ROBOT_TOKEN", "")
@@ -19,11 +20,11 @@ def generate_launch_description():
     go2_pkg = get_package_share_directory("go2_robot_sdk")
     urdf_path = os.path.join(go2_pkg, "urdf", "go2.urdf")
 
-    slam_params = os.path.join(ws, "config", "go2_mapper_params_live.yaml")
+    slam_params = str(ws / "config" / "go2_mapper_params_live.yaml")
 
-    scan_filter_script = os.path.join(ws, "lidar_nodes", "go2_scan_filter.py")
-    cmd_vel_relay_script = os.path.join(ws, "lidar_nodes", "cmd_vel_out_relay.py")
-    viewer_script = os.path.join(ws, "lidar_nodes", "slam_live_viewer_detector.py")
+    scan_filter_script = str(ws / "lidar_nodes" / "go2_scan_filter.py")
+    cmd_vel_relay_script = str(ws / "lidar_nodes" / "cmd_vel_out_relay.py")
+    viewer_script = str(ws / "lidar_nodes" / "slam_live_viewer_detector.py")
 
     with open(urdf_path, "r") as f:
         robot_desc = f.read()
@@ -154,7 +155,7 @@ def generate_launch_description():
                 "-p", "baseline_delay_sec:=8.0",
                 "-p", "novelty_required_points:=6",
                 "-p", "novelty_cluster_radius_m:=0.45",
-                "-p", "state_path:=/home/nextnet/AlbertoDir/go2_dt/ros2_ws/lidar_outputs/live_lidar_state.json",
+                "-p", f"state_path:={ws / 'lidar_outputs' / 'live_lidar_state.json'}",
             ],
             output="screen",
         ),
