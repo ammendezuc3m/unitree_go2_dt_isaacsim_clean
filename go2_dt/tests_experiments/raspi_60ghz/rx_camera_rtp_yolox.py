@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+GO2_ROOT = Path(__file__).resolve().parents[2]
+
 import argparse
 import json
 import os
@@ -145,12 +147,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=6000)
     ap.add_argument("--latency-ms", type=int, default=200)
-    ap.add_argument("--json-out", default="/home/nextnet/AlbertoDir/go2_dt/camera_yolo/outputs/live_camera_state.json")
+    ap.add_argument("--json-out", default=str(GO2_ROOT / "camera_yolo" / "outputs" / "live_camera_state.json"))
     ap.add_argument("--window-name", default="Raspi camera RX + YOLO")
     ap.add_argument("--process-fps", type=float, default=5.0)
 
-    ap.add_argument("--yolo-exp-file", default="/home/nextnet/AlbertoDir/go2_dt/camera_yolo/YOLOX/exps/default/yolox_s.py")
-    ap.add_argument("--yolo-ckpt", default="/home/nextnet/AlbertoDir/go2_dt/camera_yolo/Weights/yolox_s.pth")
+    ap.add_argument("--yolo-exp-file", default=str(GO2_ROOT / "camera_yolo" / "YOLOX" / "exps" / "default" / "yolox_s.py"))
+    ap.add_argument("--yolo-ckpt", default=str(GO2_ROOT / "camera_yolo" / "Weights" / "yolox_s.pth"))
     ap.add_argument("--yolo-device", default="gpu", choices=["gpu", "cpu"])
     ap.add_argument("--yolo-conf", type=float, default=0.25)
     ap.add_argument("--yolo-nms", type=float, default=0.45)
