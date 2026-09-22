@@ -23,8 +23,10 @@ set -Eeuo pipefail
 #   Raspi sender: camera + MP4 + iperf
 # ============================================================
 
-GO2_ROOT="${GO2_ROOT:-/home/nextnet/AlbertoDir/go2_dt}"
-YOLO_PYTHON="${GO2_ROOT}/venvs/webcam_yolo_env/bin/python"
+SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GO2_ROOT="${GO2_ROOT:-$(cd "${SCRIPT_DIR}/../.." && pwd)}"
+REPO_ROOT="$(cd "${GO2_ROOT}/.." && pwd)"
+YOLO_PYTHON="${REPO_ROOT}/.venv/bin/python"
 
 SPARK_IF="${SPARK_IF:-enP7s7}"
 SPARK_IP="${SPARK_IP:-172.16.12.170}"
@@ -34,7 +36,7 @@ RASPI_MGMT_HOST="${RASPI_MGMT_HOST:-192.168.1.100}"
 IPERF_PORT="${IPERF_PORT:-5201}"
 IPERF_MODE="${IPERF_MODE:-tcp}"
 IPERF_BITRATE="${IPERF_BITRATE:-400M}"
-MP4_FILE="${MP4_FILE:-/home/nextnet/raspi_60ghz_demo/golden_test.mp4}"
+MP4_FILE="${MP4_FILE:-/home/${RASPI_USER:-nextnet}/raspi_60ghz_demo/golden_test.mp4}"
 
 CAMERA_PORT="${CAMERA_PORT:-6000}"
 MP4_PORT="${MP4_PORT:-6002}"
@@ -71,7 +73,7 @@ YOLO_CKPT="${YOLO_CKPT:-${GO2_ROOT}/camera_yolo/Weights/yolox_s.pth}"
 
 THROUGHPUT_LOCAL_PY="${GO2_ROOT}/tests_experiments/raspi_60ghz_ap13_sta12/throughput_local_rx_tk_smooth.py"
 YOLO_RX_PY="${GO2_ROOT}/tests_experiments/raspi_60ghz/rx_camera_rtp_yolox_realtime_pipe.py"
-YOLO_PY="/home/nextnet/AlbertoDir/go2_dt/venvs/webcam_yolo_env/bin/python"
+YOLO_PY="${YOLO_PYTHON}"
 
 LOG_DIR="${GO2_ROOT}/tests_experiments/tmp_outputs/raspi_60ghz_ap13_sta12"
 mkdir -p "${LOG_DIR}"
