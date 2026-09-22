@@ -93,7 +93,7 @@ Manual copying is still documented in `deployment/README.md` for recovery/debugg
 The standard way to configure and verify the AP13/STA12/Raspi path is to run the setup script from the PC/Spark:
 
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt
+cd go2_dt
 
 RASPI_MGMT_HOST=10.39.251.226 \
 RASPI_USER=nextnet \
@@ -114,7 +114,7 @@ This script performs the remote setup through SSH. In the current repository it:
 Before running it on a fresh clone:
 
 ```bash
-cd /home/nextnet/AlbertoDir
+cd <repo-root>
 git lfs pull
 bash requirements/check_lfs_assets.sh
 ```
@@ -160,13 +160,13 @@ In the full flow, this script may be started remotely through SSH from the PC/Sp
 The OpenWrt script appends valid CSI measurements to the PC/Spark file:
 
 ```text
-/home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
+<repo-root>/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
 ```
 
 This file is then consumed by the PC-side predictor, which writes:
 
 ```text
-/home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json
+<repo-root>/go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json
 ```
 
 That JSON is consumed by:
@@ -177,7 +177,7 @@ That JSON is consumed by:
 ### 4.3 Important variables inside the OpenWrt script
 
 ```text
-PC_FILE=/home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
+PC_FILE=<repo-root>/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
 KEY=/root/.ssh/id_rsa_dropbear
 MAC_BIN=/tmp/ap_mac.bin
 AP_IP=10.10.10.1
@@ -306,7 +306,7 @@ If you change `MP4_PORT`, update both:
 From the PC/Spark:
 
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt
+cd go2_dt
 
 RASPI_HOST=172.16.13.100 \
 RASPI_USER=nextnet \
@@ -366,6 +366,6 @@ tail -f /tmp/csi_05s_single_local.txt
 On PC/Spark:
 
 ```bash
-tail -f /home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
-stat /home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json
+tail -f <repo-root>/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
+stat <repo-root>/go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json
 ```
