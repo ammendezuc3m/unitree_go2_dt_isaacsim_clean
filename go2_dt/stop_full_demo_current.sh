@@ -3,13 +3,13 @@ set -Eeuo pipefail
 
 # ============================================================
 # FULL DEMO STOPPER - CURRENT STABLE STACK
-# /home/nextnet/AlbertoDir/go2_dt/stop_full_demo_current.sh
+# Portable: paths are derived from this script location.
 # Stops Isaac Sim + Go2/ROS + validated 60GHz stack
 # + MP4 RX + CSI + YOLO USB + iperf + throughput plot
 # ============================================================
 
-USER_HOME="${HOME}"
-GO2_ROOT="${USER_HOME}/AlbertoDir/go2_dt"
+SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GO2_ROOT="${SCRIPT_DIR}"
 ROS_WS="${GO2_ROOT}/ros2_ws"
 
 LOCAL_IFACE="enP7s7"
