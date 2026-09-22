@@ -111,7 +111,52 @@ This mode is used when the demo includes the Raspberry Pi as a remote sender. Th
 
 ---
 
-## 5. Requirements
+## 5. Fresh installation order
+
+Until the hardcoded-path cleanup is completed, the validated repository root is:
+
+```text
+/home/nextnet/AlbertoDir
+```
+
+Clone directly into that path so the current launchers, Docker mounts and unified venv all resolve consistently:
+
+```bash
+mkdir -p /home/nextnet
+git clone <repository-url> /home/nextnet/AlbertoDir
+cd /home/nextnet/AlbertoDir
+```
+
+Install Git LFS and materialize the large runtime assets **before** building or provisioning external devices:
+
+```bash
+sudo apt update
+sudo apt install -y git-lfs
+
+git lfs install
+git lfs pull
+bash requirements/check_lfs_assets.sh
+```
+
+The critical LFS files include the YOLO weights, CSI model, demo MP4 and validated Isaac USD scene. A normal-looking clone that still contains LFS pointer files is not ready to run.
+
+Then continue in this order:
+
+```text
+1. Install ROS 2 Jazzy + host system packages.
+2. Run: bash requirements/setup_host_env.sh
+3. Build go2_dt/ros2_ws with ROS 2 + .venv active.
+4. If using the Raspi architecture, run the AP13/STA12/Raspi setup.
+   The setup copies the tracked Raspberry Pi scripts + golden_test.mp4 to the Raspi
+   and copies the tracked CSI scripts to STA12 through the Raspi SSH hop.
+5. Launch the selected full demo.
+```
+
+The detailed package installation is in [`requirements/README.md`](requirements/README.md), and the external-device provisioning sequence is in [`deployment/README.md`](deployment/README.md).
+
+---
+
+## 6. Requirements
 
 ### 5.1 Host / Spark / main PC
 
@@ -175,7 +220,7 @@ See [`deployment/README.md`](deployment/README.md) for the complete provisioning
 
 ---
 
-## 6. Build ROS 2 workspace
+## 7. Build ROS 2 workspace
 
 Create the unified host environment first:
 
@@ -204,7 +249,7 @@ The official launchers check that `.venv` exists and use it for the Go2 SDK, CSI
 
 ---
 
-## 7. Run without Raspi
+## 8. Run without Raspi
 
 ### Step 1: Deploy the physical setup
 
@@ -246,7 +291,7 @@ cd /home/nextnet/AlbertoDir/go2_dt
 
 ---
 
-## 8. Run with Raspi
+## 9. Run with Raspi
 
 ### Step 1: Deploy the physical setup
 
@@ -311,7 +356,7 @@ or:
 
 ---
 
-## 9. Run Isaac Sim separately
+## 10. Run Isaac Sim separately
 
 Use this when you want to test only the digital twin or open/edit scenes manually.
 
@@ -360,7 +405,7 @@ That `exec(...)` method is optional. The normal workflow is to open Isaac Sim, u
 
 ---
 
-## 10. Run Go2 SDK separately
+## 11. Run Go2 SDK separately
 
 ```bash
 cd /home/nextnet/AlbertoDir/go2_dt/ros2_ws
@@ -385,7 +430,7 @@ This is why the patrol script publishes to `/cmd_vel_out`.
 
 ---
 
-## 11. Hardcoded paths and how to change them
+## 12. Hardcoded paths and current limitation
 
 Several scripts were validated with:
 
@@ -409,15 +454,15 @@ Changing the project directory affects:
 - OpenWrt CSI `PC_FILE`;
 - Raspi sender paths.
 
-Recommended reproducible approach:
+For the current branch, the supported workaround is **not** to use partial symlinks. Keep the repository root itself at:
 
-```bash
-mkdir -p /home/nextnet/AlbertoDir
-ln -s /home/nextnet/unitree_go2_dt_isaacsim_clean/go2_dt /home/nextnet/AlbertoDir/go2_dt
-ln -s /home/nextnet/unitree_go2_dt_isaacsim_clean/go2_assets /home/nextnet/AlbertoDir/go2_assets
+```text
+/home/nextnet/AlbertoDir
 ```
 
-If you change the base directory instead, update all of these consistently:
+This keeps `go2_dt/`, `go2_assets/`, `requirements/` and `.venv/` under the same root expected by the launchers.
+
+The hardcoded-path cleanup remains known technical debt and should be refactored later. If you change the base directory now, update all of these consistently:
 
 | Place | What to change | What it affects |
 |---|---|---|
@@ -430,7 +475,7 @@ If you change the base directory instead, update all of these consistently:
 
 ---
 
-## 12. JSON integration
+## 13. JSON integration
 
 Read the full contract here:
 
@@ -458,7 +503,7 @@ Important: the patrol and sync scripts use the **file modification time** to det
 
 ---
 
-## 13. Acknowledgements
+## 14. Acknowledgements
 
 This repository builds on and integrates several open-source and research tools:
 
