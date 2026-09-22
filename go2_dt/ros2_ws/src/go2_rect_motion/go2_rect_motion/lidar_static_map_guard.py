@@ -4,6 +4,7 @@ import math
 import os
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import rclpy
@@ -28,9 +29,12 @@ except Exception:
     MATPLOTLIB_AVAILABLE = False
 
 
-DEFAULT_OUTPUT_JSON = "/home/nextnet/AlbertoDir/go2_dt/ros2_ws/lidar_outputs/live_lidar_state.json"
-DEFAULT_WORLD_BASELINE_JSON = "/home/nextnet/AlbertoDir/go2_dt/ros2_ws/lidar_outputs/lidar_baseline_world.json"
-DEFAULT_DEBUG_IMAGE = "/home/nextnet/AlbertoDir/go2_dt/ros2_ws/lidar_outputs/live_lidar_guard_debug.png"
+ROS_WS_ROOT = Path(__file__).resolve().parents[3]
+LIDAR_OUTPUT_DIR = ROS_WS_ROOT / "lidar_outputs"
+
+DEFAULT_OUTPUT_JSON = str(LIDAR_OUTPUT_DIR / "live_lidar_state.json")
+DEFAULT_WORLD_BASELINE_JSON = str(LIDAR_OUTPUT_DIR / "lidar_baseline_world.json")
+DEFAULT_DEBUG_IMAGE = str(LIDAR_OUTPUT_DIR / "live_lidar_guard_debug.png")
 
 
 @dataclass
