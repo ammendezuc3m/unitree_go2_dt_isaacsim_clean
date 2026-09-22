@@ -221,10 +221,11 @@ See [`deployment/README.md`](deployment/README.md) for the complete provisioning
 
 ## 7. Build ROS 2 workspace
 
-Create the unified host environment first:
+Create the unified host environment first. From anywhere inside the cloned repository:
 
 ```bash
-cd <repo-root>
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "${REPO_ROOT}"
 bash requirements/setup_host_env.sh
 ```
 
