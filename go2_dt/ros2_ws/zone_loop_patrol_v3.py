@@ -5,6 +5,7 @@ import math
 import os
 import threading
 import time
+from pathlib import Path
 from collections import deque
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Any
@@ -29,6 +30,10 @@ ANSI_WHITE = "\033[97m"
 
 MMWAVE_PERSON_LABELS = {"person", "person_1", "human", "occupied", "true"}
 MMWAVE_EMPTY_LABELS = {"empty", "nothing", "none", "clear", "background", "no_object", "no_novel_object", "false"}
+
+ROS_WS_ROOT = Path(__file__).resolve().parent
+GO2_ROOT = ROS_WS_ROOT.parent
+
 
 
 def col(text: str, color: str) -> str:
@@ -504,8 +509,8 @@ class PhaseTeachReplayPatrol(Node):
         self.declare_parameter("mode", "teach")
         self.declare_parameter("cmd_topic", "/cmd_vel_out")
 
-        self.declare_parameter("output_file", "/home/nextnet/AlbertoDir/go2_dt/ros2_ws/phase_trained_lap.json")
-        self.declare_parameter("input_file", "/home/nextnet/AlbertoDir/go2_dt/ros2_ws/phase_trained_lap.json")
+        self.declare_parameter("output_file", str(ROS_WS_ROOT / "phase_trained_lap.json"))
+        self.declare_parameter("input_file", str(ROS_WS_ROOT / "phase_trained_lap.json"))
 
         self.declare_parameter("loop_hz", 25.0)
 
@@ -571,19 +576,19 @@ class PhaseTeachReplayPatrol(Node):
 
         self.declare_parameter(
             "patrol_state_path",
-            "/home/nextnet/AlbertoDir/go2_dt/ros2_ws/patrol_outputs/live_patrol_state.json",
+            str(ROS_WS_ROOT / "patrol_outputs" / "live_patrol_state.json"),
         )
         self.declare_parameter(
             "camera_state_path",
-            "/home/nextnet/AlbertoDir/go2_dt/camera_yolo/outputs/live_camera_state.json",
+            str(GO2_ROOT / "camera_yolo" / "outputs" / "live_camera_state.json"),
         )
         self.declare_parameter(
             "mmwave_state_path",
-            "/home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json",
+            str(GO2_ROOT / "csi_dog_dataset_20210421_181125" / "analysis_outputs" / "live_prediction_state.json"),
         )
         self.declare_parameter(
             "lidar_state_path",
-            "/home/nextnet/AlbertoDir/go2_dt/ros2_ws/lidar_outputs/live_lidar_state.json",
+            str(ROS_WS_ROOT / "lidar_outputs" / "live_lidar_state.json"),
         )
 
         self.declare_parameter("enable_camera_stop", True)
