@@ -145,6 +145,17 @@ check_cmd() {
   fi
 }
 
+check_graphical_terminal() {
+  if command -v gnome-terminal >/dev/null 2>&1 || \
+     command -v xterm >/dev/null 2>&1 || \
+     command -v konsole >/dev/null 2>&1; then
+    return 0
+  fi
+
+  err "No encuentro un terminal gráfico compatible (gnome-terminal, xterm o konsole)."
+  exit 1
+}
+
 open_terminal() {
   local title="$1"
   local command="$2"
@@ -253,7 +264,7 @@ preflight() {
   check_cmd ip
   check_cmd python3
   check_cmd docker
-  check_cmd gnome-terminal
+  check_graphical_terminal
   check_cmd gst-launch-1.0
 
   check_file "$RASPI_STACK_SH"
