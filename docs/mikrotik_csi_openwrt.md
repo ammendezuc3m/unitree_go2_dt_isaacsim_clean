@@ -77,7 +77,7 @@ PC/Spark repository
   ├─ deployment/raspi/.../*.sh
   │      -> Raspberry Pi /home/system/raspi_60ghz_demo/
   ├─ go2_dt/media/golden_test.mp4
-  │      -> Raspberry Pi /home/nextnet/raspi_60ghz_demo/golden_test.mp4
+  │      -> Raspberry Pi ~/raspi_60ghz_demo/golden_test.mp4
   └─ deployment/openwrt/scripts_csi_dog/*.sh
          -> Raspberry Pi SSH hop -> STA12 /root/scripts_csi_dog/
 ```
@@ -147,26 +147,32 @@ Expected script path after deployment:
 /root/scripts_csi_dog/stream_csi_live_05s_single.sh
 ```
 
-Manual execution:
+The full launcher starts this script remotely and passes three values: the PC IP, the PC user and the **actual CSI output path derived from the current repository clone**.
+
+For manual debugging, run this from the PC/Spark repository root:
 
 ```bash
-/root/scripts_csi_dog/stream_csi_live_05s_single.sh 172.16.12.170 nextnet
+REPO_ROOT="$(pwd)"
+CSI_STREAM_FILE="${REPO_ROOT}/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt"
+
+ssh root@192.168.1.12 \
+  "/root/scripts_csi_dog/stream_csi_live_05s_single.sh 192.168.1.170 '${USER}' '${CSI_STREAM_FILE}'"
 ```
 
-In the full flow, this script may be started remotely through SSH from the PC/Spark pipeline.
+This is why cloning the repository in a different host directory no longer requires editing the OpenWrt script.
 
 ### 4.2 What it writes on the PC/Spark
 
-The OpenWrt script appends valid CSI measurements to the PC/Spark file:
+The OpenWrt script appends valid CSI measurements to the PC/Spark file selected by the host launcher. Relative to the repository root, that file is:
 
 ```text
-<repo-root>/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
+go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
 ```
 
-This file is then consumed by the PC-side predictor, which writes:
+The PC-side predictor writes:
 
 ```text
-<repo-root>/go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json
+go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json
 ```
 
 That JSON is consumed by:
@@ -174,10 +180,21 @@ That JSON is consumed by:
 - `zone_loop_patrol_v3.py` for safety-stop decisions;
 - `go2_dt_sync_demo2_new.py` for visual state in Isaac Sim.
 
-### 4.3 Important variables inside the OpenWrt script
+### 4.3 Important runtime values
+
+`stream_csi_live_05s_single.sh` receives these positional arguments:
 
 ```text
-PC_FILE=<repo-root>/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
+$1 = PC_IP
+$2 = PC_USER
+$3 = PC_FILE
+```
+
+`PC_FILE` is supplied by the PC launcher from its repository-derived `CSI_STREAM_FILE`; it is no longer hardcoded in the MikroTik script.
+
+Other device-local values include:
+
+```text
 KEY=/root/.ssh/id_rsa_dropbear
 MAC_BIN=/tmp/ap_mac.bin
 AP_IP=10.10.10.1
@@ -187,8 +204,6 @@ LOCKDIR=/tmp/csi_05s_single.lock
 PERIOD_S=0.5
 AFTER_TRIGGER_SLEEP_S=0.2
 ```
-
-If you change the project root on the PC/Spark, you must also update `PC_FILE` inside the OpenWrt script. Otherwise the CSI stream will still be appended to the old path and the predictor will not see new data.
 
 ### 4.4 How the CSI trigger works
 
@@ -258,7 +273,7 @@ CAMERA_FPS=15
 CAMERA_BITRATE_KBPS=2000
 CAMERA_PORT=6000
 
-MP4_FILE=/home/nextnet/raspi_60ghz_demo/golden_test.mp4
+MP4_FILE=$HOME/raspi_60ghz_demo/golden_test.mp4
 MP4_WIDTH=1280
 MP4_HEIGHT=720
 MP4_FPS=15
@@ -280,7 +295,7 @@ IPERF_DURATION=3600
 Copy the MP4 to the Raspi:
 
 ```bash
-scp my_video.mp4 nextnet@172.16.13.100:/home/nextnet/raspi_60ghz_demo/my_video.mp4
+scp my_video.mp4 nextnet@172.16.13.100:~/raspi_60ghz_demo/my_video.mp4
 ```
 
 Run the sender with:
@@ -288,7 +303,7 @@ Run the sender with:
 ```bash
 SPARK_IP=172.16.12.170 \
 ENABLE_MP4=1 \
-MP4_FILE=/home/nextnet/raspi_60ghz_demo/my_video.mp4 \
+MP4_FILE=~/raspi_60ghz_demo/my_video.mp4 \
 /home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh
 ```
 
@@ -342,8 +357,8 @@ ping -c 3 172.16.13.100
 On Raspi:
 
 ```bash
-ls -lh /home/nextnet/raspi_60ghz_demo/*.mp4
-tail -f /home/nextnet/raspi_60ghz_demo/logs/mp4_tx.log
+ls -lh ~/raspi_60ghz_demo/*.mp4
+tail -f ~/raspi_60ghz_demo/logs/mp4_tx.log
 ```
 
 On Spark:
@@ -366,6 +381,6 @@ tail -f /tmp/csi_05s_single_local.txt
 On PC/Spark:
 
 ```bash
-tail -f <repo-root>/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
-stat <repo-root>/go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json
+tail -f go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
+stat go2_dt/csi_dog_dataset_20210421_181125/analysis_outputs/live_prediction_state.json
 ```
