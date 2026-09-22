@@ -78,7 +78,7 @@ No manual host-path editing is required.
 Raspberry Pi:
 
 ```text
-/home/system/raspi_60ghz_demo/
+~/raspi_60ghz_demo/
 ├── raspi_60ghz_sender.sh
 ├── iperf_client_loop.sh
 └── mp4_loop_tx_6002.sh
@@ -124,7 +124,7 @@ For the complete Isaac + Go2 + sensing stack, use:
 Copy it to the Raspberry Pi user's home:
 
 ```bash
-scp my_video.mp4 nextnet@172.16.13.100:~/raspi_60ghz_demo/my_video.mp4
+scp my_video.mp4 ${RASPI_USER:-nextnet}@172.16.13.100:~/raspi_60ghz_demo/my_video.mp4
 ```
 
 Then on the Raspberry Pi:
@@ -132,7 +132,7 @@ Then on the Raspberry Pi:
 ```bash
 MP4_FILE="$HOME/raspi_60ghz_demo/my_video.mp4" \
 ENABLE_MP4=1 \
-/home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh
+~/raspi_60ghz_demo/raspi_60ghz_sender.sh
 ```
 
 ## 7. Stop
