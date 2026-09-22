@@ -114,7 +114,8 @@ This script performs the remote setup through SSH. In the current repository it:
 Before running it on a fresh clone:
 
 ```bash
-cd <repo-root>
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "${REPO_ROOT}"
 git lfs pull
 bash requirements/check_lfs_assets.sh
 ```
