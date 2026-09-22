@@ -257,6 +257,22 @@ That is why the setup can create the STA `wpa_supplicant` configuration and inst
 
 ## 5. Canonical first-time setup
 
+Before running the external-device setup on a fresh clone, prepare the host repository first:
+
+```bash
+cd /home/nextnet/AlbertoDir
+
+git lfs install
+git lfs pull
+bash requirements/check_lfs_assets.sh
+bash requirements/setup_host_env.sh
+```
+
+The setup needs the real `golden_test.mp4`, not a Git LFS pointer. The same LFS validation also confirms the YOLO weights, CSI model and validated Isaac scene used later by the full demo.
+
+You do **not** need to manually pre-copy the Raspberry Pi sender scripts or the STA12 CSI scripts if you use the canonical setup below: it provisions them from the repository every time.
+
+
 The canonical setup command is:
 
 ```bash
