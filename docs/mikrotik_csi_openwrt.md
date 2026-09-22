@@ -46,7 +46,7 @@ Raspi demo IP:      172.16.13.100
 
 ## 2. Repository deployment scripts
 
-The scripts that must be installed on the OpenWrt/MikroTik and Raspberry Pi devices are included in this repository under:
+The repository contains the source-of-truth runtime files for the external devices:
 
 ```text
 deployment/
@@ -58,34 +58,33 @@ deployment/
 └── raspi/
     └── raspi_60ghz_demo/
         ├── raspi_60ghz_sender.sh
-        └── iperf_client_loop.sh
+        ├── iperf_client_loop.sh
+        └── mp4_loop_tx_6002.sh
 ```
 
-For installation details, see:
+The validated MP4 used by the Raspberry Pi demo is:
 
 ```text
-deployment/README.md
+go2_dt/media/golden_test.mp4
 ```
 
-Short version:
+It is stored with Git LFS, so a fresh host clone must run `git lfs pull` before provisioning.
 
-```bash
-cd /home/nextnet/AlbertoDir
+For the current AP13/STA12/Raspi architecture, **manual SCP is not the normal procedure**. The canonical setup script copies the tracked files automatically:
 
-scp -r deployment/openwrt/scripts_csi_dog root@192.168.1.12:/root/
-ssh root@192.168.1.12 'chmod +x /root/scripts_csi_dog/*.sh'
-
-ssh nextnet@172.16.13.100 'sudo mkdir -p /home/system/raspi_60ghz_demo && sudo chown -R nextnet:nextnet /home/system/raspi_60ghz_demo'
-scp deployment/raspi/raspi_60ghz_demo/*.sh nextnet@172.16.13.100:/home/system/raspi_60ghz_demo/
-ssh nextnet@172.16.13.100 'chmod +x /home/system/raspi_60ghz_demo/*.sh'
+```text
+PC/Spark repository
+  ├─ deployment/raspi/.../*.sh
+  │      -> Raspberry Pi /home/system/raspi_60ghz_demo/
+  ├─ go2_dt/media/golden_test.mp4
+  │      -> Raspberry Pi /home/nextnet/raspi_60ghz_demo/golden_test.mp4
+  └─ deployment/openwrt/scripts_csi_dog/*.sh
+         -> Raspberry Pi SSH hop -> STA12 /root/scripts_csi_dog/
 ```
 
-These scripts are not executed directly from the Git repository during the full demo. They must first be copied to the corresponding target device:
+AP13 does not receive the CSI scripts because it does not execute CSI capture. Its `hostapd` configuration is created remotely by the setup.
 
-- OpenWrt/MikroTik scripts must be installed under `/root/scripts_csi_dog/`.
-- Raspberry Pi scripts must be installed under `/home/system/raspi_60ghz_demo/`.
-
-The main PC/Spark pipeline can then start or use them remotely through SSH.
+Manual copying is still documented in `deployment/README.md` for recovery/debugging, but it is not required when the canonical setup succeeds.
 
 ---
 
@@ -101,14 +100,24 @@ RASPI_USER=nextnet \
 ./tests_experiments/raspi_60ghz_ap13_sta12/setup_ap13_sta12_link_raspi_wifi.sh
 ```
 
-This script performs the remote setup through SSH. It checks and/or repairs:
+This script performs the remote setup through SSH. In the current repository it:
 
-- access to the Raspberry Pi;
-- access to AP13 and STA12;
-- the AP13–STA12 wireless association;
-- radio ping over `wlan0`;
-- routes between Spark and Raspi;
-- end-to-end reachability.
+- checks access to the Raspberry Pi;
+- provisions the Raspberry Pi sender, MP4 loop and iperf loop;
+- copies the materialized `golden_test.mp4` to the Raspberry Pi;
+- reaches STA12 through the Raspberry Pi SSH hop and provisions all tracked CSI scripts;
+- configures AP13 and STA12 radio settings;
+- checks the AP13–STA12 wireless association and radio ping over `wlan0`;
+- configures/repairs Spark, radio and Raspberry Pi routes;
+- verifies end-to-end Spark↔Raspberry Pi reachability.
+
+Before running it on a fresh clone:
+
+```bash
+cd /home/nextnet/AlbertoDir
+git lfs pull
+bash requirements/check_lfs_assets.sh
+```
 
 Manual checks:
 
