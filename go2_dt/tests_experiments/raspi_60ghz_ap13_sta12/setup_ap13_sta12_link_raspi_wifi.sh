@@ -522,7 +522,6 @@ set -e
 sudo mkdir -p ${RASPI_RUNTIME_DIR}
 sudo chown -R ${RASPI_USER}:${RASPI_USER} ${RASPI_RUNTIME_DIR}
 mkdir -p ${RASPI_RUNTIME_DIR}/logs
-mkdir -p /home/${RASPI_USER}/raspi_60ghz_demo
 "
 
   deploy_file_to_raspi "${DEPLOY_RASPI_DIR}/raspi_60ghz_sender.sh" "${RASPI_RUNTIME_DIR}/raspi_60ghz_sender.sh"
