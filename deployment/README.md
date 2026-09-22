@@ -191,7 +191,7 @@ Repeated dataset capture:
 Verify the live file on the PC/Spark:
 
 ```bash
-tail -f /home/nextnet/AlbertoDir/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
+tail -f <repo-root>/go2_dt/csi_dog_dataset_20210421_181125/realtime_inputs/live_csi_stream.txt
 ```
 
 ---
@@ -260,7 +260,7 @@ That is why the setup can create the STA `wpa_supplicant` configuration and inst
 Before running the external-device setup on a fresh clone, prepare the host repository first:
 
 ```bash
-cd /home/nextnet/AlbertoDir
+cd <repo-root>
 
 git lfs install
 git lfs pull
@@ -276,7 +276,7 @@ You do **not** need to manually pre-copy the Raspberry Pi sender scripts or the 
 The canonical setup command is:
 
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt
+cd go2_dt
 
 RASPI_MGMT_HOST=<raspi-management-ip> \
 RASPI_USER=nextnet \
