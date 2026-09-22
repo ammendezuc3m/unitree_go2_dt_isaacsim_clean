@@ -264,7 +264,8 @@ That is why the setup can create the STA `wpa_supplicant` configuration and inst
 Before running the external-device setup on a fresh clone, prepare the host repository first:
 
 ```bash
-cd <repo-root>
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "${REPO_ROOT}"
 
 git lfs install
 git lfs pull
