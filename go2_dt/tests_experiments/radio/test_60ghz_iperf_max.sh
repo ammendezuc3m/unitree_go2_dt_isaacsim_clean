@@ -5,7 +5,7 @@ set -Eeuo pipefail
 # 60 GHz iperf3 maximum throughput test
 #
 # Ejecutar en Spark:
-#   cd /home/nextnet/AlbertoDir/go2_dt
+#   cd ${GO2_ROOT}
 #   ./tests_experiments/radio/test_60ghz_iperf_max.sh
 #
 # Objetivo:
@@ -23,7 +23,8 @@ set -Eeuo pipefail
 #   UDP sweep opcional
 # ============================================================
 
-GO2_ROOT="/home/nextnet/AlbertoDir/go2_dt"
+SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GO2_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 LOCAL_IFACE="${LOCAL_IFACE:-enP7s7}"
 LOCAL_IP="${LOCAL_IP:-192.168.1.170/24}"
