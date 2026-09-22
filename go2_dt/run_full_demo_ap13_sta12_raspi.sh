@@ -54,6 +54,7 @@ LOCAL_IFACE="enP7s7"
 SPARK_IP="172.16.12.170"
 RASPI_HOST="172.16.13.100"
 RASPI_USER="${RASPI_USER:-nextnet}"
+RASPI_RUNTIME_DIR="${RASPI_RUNTIME_DIR:-${RASPI_RUNTIME_DIR}}"
 
 detect_raspi_mgmt_host() {
   local candidates=(
@@ -99,7 +100,7 @@ export RASPI_MGMT_HOST RASPI_USER
 echo "[AUTO] Raspi detectada: ${RASPI_USER}@${RASPI_MGMT_HOST}"
 
 # Carga demo
-MP4_FILE="${MP4_FILE:-/home/${RASPI_USER}/raspi_60ghz_demo/golden_test.mp4}"
+MP4_FILE="${MP4_FILE:-${RASPI_RUNTIME_DIR}/golden_test.mp4}"
 IPERF_BITRATE="${IPERF_BITRATE:-400M}"
 THROUGHPUT_SCALE_MAX="${THROUGHPUT_SCALE_MAX:-500}"
 THROUGHPUT_SMOOTH_SAMPLES="${THROUGHPUT_SMOOTH_SAMPLES:-30}"
@@ -222,7 +223,7 @@ cleanup_stale_local_processes() {
 cleanup_raspi_processes() {
   log "Limpieza inicial en Raspi..."
 
-  ssh -o ConnectTimeout=5 nextnet@"${RASPI_HOST}" '
+  ssh -o ConnectTimeout=5 ${RASPI_USER}@"${RASPI_HOST}" '
 for pid in $(ps -eo pid,args | awk "/iperf3|gst-launch-1.0|v4l2src|x264enc|raspi_60ghz_sender|while true|mp4-loop|iperf-loop/ && !/awk/ {print \$1}"); do
   kill -9 "$pid" 2>/dev/null || true
 done
@@ -231,7 +232,7 @@ killall -9 iperf3 2>/dev/null || true
 killall -9 gst-launch-1.0 2>/dev/null || true
 ' || {
     warn "No pude limpiar Raspi por ${RASPI_HOST}; pruebo gestión ${RASPI_MGMT_HOST}"
-    ssh -o ConnectTimeout=5 nextnet@"${RASPI_MGMT_HOST}" '
+    ssh -o ConnectTimeout=5 ${RASPI_USER}@"${RASPI_MGMT_HOST}" '
 for pid in $(ps -eo pid,args | awk "/iperf3|gst-launch-1.0|v4l2src|x264enc|raspi_60ghz_sender|while true|mp4-loop|iperf-loop/ && !/awk/ {print \$1}"); do
   kill -9 "$pid" 2>/dev/null || true
 done
@@ -304,11 +305,11 @@ check_final_link_ready() {
 
   echo
   echo "=== SSH Raspi final ==="
-  ssh -o ConnectTimeout=5 nextnet@"${RASPI_HOST}" "
+  ssh -o ConnectTimeout=5 ${RASPI_USER}@"${RASPI_HOST}" "
 echo SSH_OK_RASPI_FINAL
 ip route get '${SPARK_IP}'
 test -e ${YOLO_CAMERA_DEVICE} && echo "${YOLO_CAMERA_DEVICE} YOLO OK" || echo "${YOLO_CAMERA_DEVICE} YOLO MISSING"; echo "[INFO] AprilTag camera is local on Spark: ${APRILTAG_CAMERA_DEVICE}"
-test -x /home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh && echo 'sender OK' || echo 'sender MISSING'
+test -x ${RASPI_RUNTIME_DIR}/raspi_60ghz_sender.sh && echo 'sender OK' || echo 'sender MISSING'
 "
 }
 
@@ -565,10 +566,10 @@ read -r
 launch_raspi_mp4_loop_clean_final() {
   log "Lanzando MP4 golden_test en bucle persistente desde Raspi hacia Spark:6002..."
 
-  ssh -o ConnectTimeout=8 nextnet@"${RASPI_HOST}" bash -s <<REMOTE_MP4_LOOP
+  ssh -o ConnectTimeout=8 ${RASPI_USER}@"${RASPI_HOST}" bash -s <<REMOTE_MP4_LOOP
 set -Eeuo pipefail
 
-DEMO_DIR="/home/system/raspi_60ghz_demo"
+DEMO_DIR="${RASPI_RUNTIME_DIR}"
 LOOP_SH="\${DEMO_DIR}/mp4_loop_tx_6002.sh"
 LOG="\${DEMO_DIR}/logs/mp4_loop_tx_6002.log"
 PIDFILE="\${DEMO_DIR}/logs/mp4_loop_tx_6002.pid"
@@ -584,7 +585,7 @@ cat > "\${LOOP_SH}" <<'EOF'
 set -Eeuo pipefail
 
 SPARK_IP="\${SPARK_IP:-172.16.12.170}"
-MP4_FILE="\${MP4_FILE:-/home/${RASPI_USER}/raspi_60ghz_demo/golden_test.mp4}"
+MP4_FILE="\${MP4_FILE:-${RASPI_RUNTIME_DIR}/golden_test.mp4}"
 MP4_PORT="\${MP4_PORT:-6002}"
 
 MP4_WIDTH="\${MP4_WIDTH:-1280}"
@@ -638,10 +639,10 @@ REMOTE_MP4_LOOP
 launch_raspi_mp4_loop_clean_final() {
   log "Lanzando MP4 en bucle automático GStreamer desde Raspi hacia Spark:6002..."
 
-  ssh -o ConnectTimeout=8 nextnet@"${RASPI_HOST}" bash -s <<REMOTE_MP4_GST_LOOP
+  ssh -o ConnectTimeout=8 ${RASPI_USER}@"${RASPI_HOST}" bash -s <<REMOTE_MP4_GST_LOOP
 set -Eeuo pipefail
 
-DEMO_DIR="/home/system/raspi_60ghz_demo"
+DEMO_DIR="${RASPI_RUNTIME_DIR}"
 LOOP_SH="\${DEMO_DIR}/mp4_loop_tx_6002.sh"
 LOG="\${DEMO_DIR}/logs/mp4_loop_tx_6002.log"
 PIDFILE="\${DEMO_DIR}/logs/mp4_loop_tx_6002.pid"
@@ -697,7 +698,7 @@ MP4_WIDTH=\"1280\" \\
 MP4_HEIGHT=\"720\" \\
 MP4_FPS=\"15\" \\
 MP4_BITRATE_KBPS=\"20000\" \\
-/home/system/raspi_60ghz_demo/mp4_loop_tx_6002.sh
+${RASPI_RUNTIME_DIR}/mp4_loop_tx_6002.sh
 '
 "
 }
