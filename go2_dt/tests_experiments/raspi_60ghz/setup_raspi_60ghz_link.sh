@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-GO2_ROOT="/home/nextnet/AlbertoDir/go2_dt"
+SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GO2_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 SPARK_IFACE="${SPARK_IFACE:-enP7s7}"
 SPARK_DEMO_IP="${SPARK_DEMO_IP:-172.16.13.170}"
