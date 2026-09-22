@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 # ============================================================
 # DEMO TEST: MP4 TX 60GHz + CSI 0.5s + iperf3 paralelo
-# /home/nextnet/AlbertoDir/go2_dt/demo_60ghz_video_iperf_csi_yolo_usb.sh
+# Portable: paths are derived from this script location.
 #
 # Objetivo:
 # - Separar calidad de vídeo/red de la carga de YOLO.
@@ -17,8 +17,8 @@ set -Eeuo pipefail
 # - PC  : 192.168.1.170 / enP7s7
 # ============================================================
 
-USER_HOME="${HOME}"
-GO2_ROOT="${USER_HOME}/AlbertoDir/go2_dt"
+SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GO2_ROOT="${SCRIPT_DIR}"
 REPO_ROOT="$(cd "${GO2_ROOT}/.." && pwd)"
 PROJECT_PYTHON="${REPO_ROOT}/.venv/bin/python"
 ROS_WS="${GO2_ROOT}/ros2_ws"
