@@ -247,6 +247,10 @@ class LocalYoloEngine:
             print("[YOLO][WARN] CUDA no disponible; YOLO usará CPU", flush=True)
             requested_device = "cpu"
 
+        effective_fp16 = bool(args.yolo_fp16 and requested_device == "gpu")
+        if args.yolo_fp16 and not effective_fp16:
+            print("[YOLO][WARN] FP16 solicitado pero no hay GPU CUDA activa; se usará FP32", flush=True)
+
         if requested_device == "gpu":
             try:
                 torch.backends.cudnn.benchmark = True
@@ -268,7 +272,7 @@ class LocalYoloEngine:
 
         if requested_device == "gpu":
             model.cuda()
-            if args.yolo_fp16:
+            if effective_fp16:
                 model.half()
 
         model.eval()
@@ -279,10 +283,11 @@ class LocalYoloEngine:
         self.model = model
         self.exp = exp
         self.device = requested_device
+        self.fp16 = effective_fp16
         self.preproc = ValTransform(legacy=False)
 
         print(
-            f"[YOLO] listo | device={self.device} | input_size={exp.test_size} | fp16={args.yolo_fp16}",
+            f"[YOLO] listo | device={self.device} | input_size={exp.test_size} | fp16={self.fp16}",
             flush=True,
         )
 
@@ -304,7 +309,7 @@ class LocalYoloEngine:
 
         if self.device == "gpu":
             img = img.cuda(non_blocking=True)
-            if self.args.yolo_fp16:
+            if self.fp16:
                 img = img.half()
 
         with torch.inference_mode():
