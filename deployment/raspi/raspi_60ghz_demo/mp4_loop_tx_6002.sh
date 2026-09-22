@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 SPARK_IP="${SPARK_IP:-172.16.12.170}"
-MP4_FILE="${MP4_FILE:-/home/nextnet/raspi_60ghz_demo/golden_test.mp4}"
+MP4_FILE="${MP4_FILE:-${HOME}/raspi_60ghz_demo/golden_test.mp4}"
 MP4_PORT="${MP4_PORT:-6002}"
 
 MP4_WIDTH="${MP4_WIDTH:-1280}"
