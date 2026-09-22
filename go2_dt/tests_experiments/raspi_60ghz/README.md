@@ -25,7 +25,7 @@ deployment/raspi/raspi_60ghz_demo/
 Target path on the Raspberry Pi:
 
 ```text
-/home/system/raspi_60ghz_demo/
+~/raspi_60ghz_demo/
 ```
 
 Install from the PC/Spark:
@@ -33,12 +33,12 @@ Install from the PC/Spark:
 ```bash
 cd <repo-root>
 
-ssh nextnet@172.16.13.100 'sudo mkdir -p /home/system/raspi_60ghz_demo && sudo chown -R nextnet:nextnet /home/system/raspi_60ghz_demo'
+ssh ${RASPI_USER:-nextnet}@172.16.13.100 'sudo mkdir -p ~/raspi_60ghz_demo && sudo chown -R nextnet:nextnet ~/raspi_60ghz_demo'
 
 scp deployment/raspi/raspi_60ghz_demo/*.sh \
-  nextnet@172.16.13.100:/home/system/raspi_60ghz_demo/
+  ${RASPI_USER:-nextnet}@172.16.13.100:~/raspi_60ghz_demo/
 
-ssh nextnet@172.16.13.100 'chmod +x /home/system/raspi_60ghz_demo/*.sh'
+ssh ${RASPI_USER:-nextnet}@172.16.13.100 'chmod +x ~/raspi_60ghz_demo/*.sh'
 ```
 
 For full deployment details, see:
@@ -88,21 +88,21 @@ ENABLE_IPERF=1 \
 The Raspi sender uses:
 
 ```text
-MP4_FILE=/home/nextnet/raspi_60ghz_demo/golden_test.mp4
+MP4_FILE=~/raspi_60ghz_demo/golden_test.mp4
 ```
 
 To use another file, copy it to the Raspi:
 
 ```bash
-scp my_video.mp4 nextnet@172.16.13.100:/home/nextnet/raspi_60ghz_demo/my_video.mp4
+scp my_video.mp4 ${RASPI_USER:-nextnet}@172.16.13.100:~/raspi_60ghz_demo/my_video.mp4
 ```
 
 Then run:
 
 ```bash
-MP4_FILE=/home/nextnet/raspi_60ghz_demo/my_video.mp4 \
+MP4_FILE=~/raspi_60ghz_demo/my_video.mp4 \
 ENABLE_MP4=1 \
-/home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh
+~/raspi_60ghz_demo/raspi_60ghz_sender.sh
 ```
 
 If only `MP4_FILE` changes, the Spark receiver does not need to change. If the RTP port changes, update both the Raspi sender and the Spark receiver.
@@ -114,10 +114,10 @@ If only `MP4_FILE` changes, the Spark receiver does not need to change. If the R
 On the Raspi:
 
 ```bash
-ls -lh /home/nextnet/raspi_60ghz_demo/logs
-tail -f /home/nextnet/raspi_60ghz_demo/logs/camera_tx.log
-tail -f /home/nextnet/raspi_60ghz_demo/logs/mp4_tx.log
-tail -f /home/nextnet/raspi_60ghz_demo/logs/iperf_client.log
+ls -lh ~/raspi_60ghz_demo/logs
+tail -f ~/raspi_60ghz_demo/logs/camera_tx.log
+tail -f ~/raspi_60ghz_demo/logs/mp4_tx.log
+tail -f ~/raspi_60ghz_demo/logs/iperf_client.log
 ```
 
 On the PC/Spark:
