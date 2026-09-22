@@ -2,12 +2,16 @@
 import json
 import math
 import os
+from pathlib import Path
 
 import rclpy
 from rclpy.node import Node
 
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
+
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_CONTROL_JSON = PACKAGE_ROOT / "config" / "control.json"
 
 
 def normalize_angle(angle: float) -> float:
@@ -30,7 +34,7 @@ class RectangleWalkNode(Node):
 
         self.declare_parameter('cmd_topic', '/cmd_vel_out')
         self.declare_parameter('odom_topic', '/odom')
-        self.declare_parameter('control_json', os.path.expanduser('~/AlbertoDir/go2_dt/ros2_ws/src/go2_rect_motion/config/control.json'))
+        self.declare_parameter('control_json', str(DEFAULT_CONTROL_JSON))
         self.declare_parameter('length', 2.0)
         self.declare_parameter('width', 1.0)
         self.declare_parameter('linear_speed', 0.20)
