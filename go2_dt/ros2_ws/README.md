@@ -7,7 +7,7 @@ This workspace contains the modified Go2 ROS 2 SDK, patrol controller, SLAM/LiDA
 Create the canonical project venv once from the repository root:
 
 ```bash
-cd /home/nextnet/AlbertoDir
+cd <repo-root>
 bash requirements/setup_host_env.sh
 ```
 
@@ -15,9 +15,9 @@ Then build this workspace with ROS 2 and the same venv active:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-source /home/nextnet/AlbertoDir/.venv/bin/activate
+source <repo-root>/.venv/bin/activate
 
-cd /home/nextnet/AlbertoDir/go2_dt/ros2_ws
+cd <repo-root>/go2_dt/ros2_ws
 
 sudo rosdep init 2>/dev/null || true
 rosdep update
@@ -26,7 +26,7 @@ colcon build --symlink-install
 source install/setup.bash
 ```
 
-Do not build the current workspace against an unrelated Python venv. The full-demo launchers use `/home/nextnet/AlbertoDir/.venv` for the Go2 SDK and the host-side Python processes.
+Do not build the current workspace against an unrelated Python venv. The full-demo launchers resolve `<repo-root>/.venv` relative to the repository location.
 
 ## Official SLAM launch
 
@@ -41,7 +41,7 @@ It starts the Go2 driver, PointCloud2-to-LaserScan conversion, scan filtering, S
 Run it with:
 
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt/ros2_ws
+cd <repo-root>/go2_dt/ros2_ws
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 export ROBOT_IP=192.168.12.1
@@ -84,7 +84,7 @@ The SDK remaps `cmd_vel_out -> cmd_vel`, so the patrol publishes to `/cmd_vel_ou
 python3 zone_loop_patrol_v3.py --ros-args \
   -p mode:=teach \
   -p cmd_topic:=/cmd_vel_out \
-  -p output_file:=/home/nextnet/AlbertoDir/go2_dt/ros2_ws/phase_trained_lap.json \
+  -p output_file:=<repo-root>/go2_dt/ros2_ws/phase_trained_lap.json \
   -p apriltag_camera_device:=/dev/video0 \
   -p apriltag_id:=0
 ```
@@ -97,7 +97,7 @@ Controls: `C` set zero, `W/S/A/D/Q/E` movement phases, `X` stop phase, `G` save.
 python3 zone_loop_patrol_v3.py --ros-args \
   -p mode:=auto \
   -p cmd_topic:=/cmd_vel_out \
-  -p input_file:=/home/nextnet/AlbertoDir/go2_dt/ros2_ws/phase_trained_lap.json \
+  -p input_file:=<repo-root>/go2_dt/ros2_ws/phase_trained_lap.json \
   -p repeat_auto:=true \
   -p enable_camera_stop:=true \
   -p enable_mmwave_stop:=true \
@@ -106,7 +106,7 @@ python3 zone_loop_patrol_v3.py --ros-args \
 
 ## Isaac sync
 
-Open Isaac Sim, use **File → Open** and load the USD stage under `/workspace`. Then optionally run:
+Open Isaac Sim from the project launcher. The launcher mounts the repository root at `/workspace` inside the container. This is a container-internal path and does not constrain where the repository lives on the host. Then optionally run:
 
 ```python
 exec(open("/workspace/go2_dt/ros2_ws/go2_dt_sync_demo2_new.py").read())
