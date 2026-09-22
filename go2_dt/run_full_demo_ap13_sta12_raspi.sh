@@ -99,7 +99,7 @@ export RASPI_MGMT_HOST RASPI_USER
 echo "[AUTO] Raspi detectada: ${RASPI_USER}@${RASPI_MGMT_HOST}"
 
 # Carga demo
-MP4_FILE="${MP4_FILE:-/home/nextnet/raspi_60ghz_demo/golden_test.mp4}"
+MP4_FILE="${MP4_FILE:-/home/${RASPI_USER}/raspi_60ghz_demo/golden_test.mp4}"
 IPERF_BITRATE="${IPERF_BITRATE:-400M}"
 THROUGHPUT_SCALE_MAX="${THROUGHPUT_SCALE_MAX:-500}"
 THROUGHPUT_SMOOTH_SAMPLES="${THROUGHPUT_SMOOTH_SAMPLES:-30}"
@@ -584,7 +584,7 @@ cat > "\${LOOP_SH}" <<'EOF'
 set -Eeuo pipefail
 
 SPARK_IP="\${SPARK_IP:-172.16.12.170}"
-MP4_FILE="\${MP4_FILE:-/home/nextnet/raspi_60ghz_demo/golden_test.mp4}"
+MP4_FILE="\${MP4_FILE:-/home/${RASPI_USER}/raspi_60ghz_demo/golden_test.mp4}"
 MP4_PORT="\${MP4_PORT:-6002}"
 
 MP4_WIDTH="\${MP4_WIDTH:-1280}"
