@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+RASPI_USER="${RASPI_USER:-nextnet}"
+
 RASPI_HOST="${RASPI_HOST:-172.16.13.100}"
 SPARK_IP="${SPARK_IP:-172.16.12.170}"
-MP4_FILE="${MP4_FILE:-/home/nextnet/raspi_60ghz_demo/golden_test.mp4}"
+MP4_FILE="${MP4_FILE:-/home/${RASPI_USER}/raspi_60ghz_demo/golden_test.mp4}"
 MP4_PORT="${MP4_PORT:-6002}"
 
 echo "[R6-LAUNCHER] Raspi=${RASPI_HOST}"
