@@ -12,3 +12,13 @@
 | `go2_dt/csi_live_predictor_from_stream.py` | Official | CSI stream to prediction JSON. |
 
 Do not commit/document as official paths: `_quarantine*/`, `_archive_unused*/`, `build/`, `install/`, `log/`, `venv/`, `.venv*/`, `site-packages/`.
+
+
+## Legacy code intentionally retained
+
+Two files that look historical are still connected to the current tree and therefore are **not** deleted blindly:
+
+- `go2_dt/ros2_ws/src/go2_rect_motion/go2_rect_motion/zone_loop_patrol.py`: still referenced by the ROS package console entry point `zone_loop_patrol = go2_rect_motion.zone_loop_patrol:main`. The documented/full-demo patrol remains `go2_dt/ros2_ws/zone_loop_patrol_v3.py`.
+- `go2_dt/tests_experiments/raspi_60ghz_ap13_sta12/setup_ap13_sta12_link_raspi_wifi.sh.base_20260527_162841`: still executed by the current robust Raspi/AP13/STA12 setup wrapper. It should be consolidated into the canonical setup before this timestamped file is removed.
+
+The obsolete `zone_loop_patrol_v2*`, `zone_loop_patrol_5g.py` and SDK `*_bk.py` backups have been removed from the clean branch.
