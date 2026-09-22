@@ -48,7 +48,7 @@ if [ -z "${RASPI_MGMT_HOST:-}" ]; then
   echo "[ERROR] Comprueba manualmente:"
   echo "  ping -c 3 192.168.1.100"
   echo "  ping -c 3 10.39.251.226"
-  echo "  ssh nextnet@192.168.1.100"
+  echo "  ssh ${RASPI_USER}@192.168.1.100"
   exit 1
 fi
 
