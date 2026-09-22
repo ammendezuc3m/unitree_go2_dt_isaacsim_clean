@@ -186,7 +186,7 @@ preflight() {
 echo SSH_OK_RASPI
 ip route get '${SPARK_IP}'
 test -e /dev/video4 && echo '/dev/video4 OK' || echo '/dev/video4 MISSING'
-test -x /home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh && echo 'sender OK' || echo 'sender MISSING'
+test -x ${RASPI_RUNTIME_DIR}/raspi_60ghz_sender.sh && echo 'sender OK' || echo 'sender MISSING'
 "
 }
 
@@ -326,7 +326,7 @@ IPERF_MODE='tcp' \
 IPERF_PORT='${IPERF_PORT}' \
 CAMERA_PORT='${CAMERA_PORT}' \
 MP4_PORT='${MP4_PORT}' \
-/home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh
+${RASPI_RUNTIME_DIR}/raspi_60ghz_sender.sh
 "
 }
 
