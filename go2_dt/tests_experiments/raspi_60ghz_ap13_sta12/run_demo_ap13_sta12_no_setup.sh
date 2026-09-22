@@ -136,7 +136,7 @@ cleanup_local() {
 cleanup_raspi() {
   log "Limpiando procesos antiguos en Raspi..."
 
-  ssh -o ConnectTimeout=5 nextnet@"${RASPI_HOST}" '
+  ssh -o ConnectTimeout=5 ${RASPI_USER}@"${RASPI_HOST}" '
 for pid in $(ps -eo pid,args | awk "/iperf3|gst-launch-1.0|v4l2src|x264enc|raspi_60ghz_sender|while true|mp4-loop|iperf-loop/ && !/awk/ {print \$1}"); do
   kill -9 "$pid" 2>/dev/null || true
 done
@@ -144,7 +144,7 @@ killall -9 iperf3 2>/dev/null || true
 killall -9 gst-launch-1.0 2>/dev/null || true
 ' || {
     warn "No pude limpiar por demo IP ${RASPI_HOST}; pruebo gestión ${RASPI_MGMT_HOST}"
-    ssh -o ConnectTimeout=5 nextnet@"${RASPI_MGMT_HOST}" '
+    ssh -o ConnectTimeout=5 ${RASPI_USER}@"${RASPI_MGMT_HOST}" '
 for pid in $(ps -eo pid,args | awk "/iperf3|gst-launch-1.0|v4l2src|x264enc|raspi_60ghz_sender|while true|mp4-loop|iperf-loop/ && !/awk/ {print \$1}"); do
   kill -9 "$pid" 2>/dev/null || true
 done
@@ -182,7 +182,7 @@ preflight() {
 
   ping -c 5 -W 2 "${RASPI_HOST}"
 
-  ssh -o ConnectTimeout=5 nextnet@"${RASPI_HOST}" "
+  ssh -o ConnectTimeout=5 ${RASPI_USER}@"${RASPI_HOST}" "
 echo SSH_OK_RASPI
 ip route get '${SPARK_IP}'
 test -e /dev/video4 && echo '/dev/video4 OK' || echo '/dev/video4 MISSING'
@@ -314,7 +314,7 @@ CSI_PREDICTIONS_CSV='${CSI_PREDICTIONS_CSV}' \
 launch_raspi_sender() {
   log "Ordenando a Raspi iniciar camera + MP4 + iperf..."
 
-  ssh -o ConnectTimeout=5 nextnet@"${RASPI_HOST}" "
+  ssh -o ConnectTimeout=5 ${RASPI_USER}@"${RASPI_HOST}" "
 SPARK_IP='${SPARK_IP}' \
 ENABLE_CAMERA='${ENABLE_CAMERA}' \
 ENABLE_IPERF='${ENABLE_IPERF}' \
