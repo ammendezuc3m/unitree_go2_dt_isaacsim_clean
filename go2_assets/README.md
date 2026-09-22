@@ -235,13 +235,13 @@ find go2_assets -type f -size +50M -printf '%s %p\n' | sort -nr | numfmt --field
 The Docker command should mount the project root as `/workspace`:
 
 ```bash
--v /home/nextnet/AlbertoDir:/workspace:rw
+-v <repo-root>:/workspace:rw
 ```
 
 or, if using the clean repository directly:
 
 ```bash
--v /home/nextnet/unitree_go2_dt_isaacsim_clean:/workspace:rw
+-v <repo-root>:/workspace:rw
 ```
 
 The sync script uses hardcoded `/workspace` paths for camera and LiDAR JSON files:
