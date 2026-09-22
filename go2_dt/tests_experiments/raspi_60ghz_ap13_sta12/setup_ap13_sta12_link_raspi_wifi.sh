@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -u
 
-GO2_ROOT="/home/nextnet/AlbertoDir/go2_dt"
+SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GO2_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 REPO_ROOT="$(cd "${GO2_ROOT}/.." && pwd)"
 DEPLOY_OPENWRT_DIR="${REPO_ROOT}/deployment/openwrt/scripts_csi_dog"
 DEPLOY_RASPI_DIR="${REPO_ROOT}/deployment/raspi/raspi_60ghz_demo"
