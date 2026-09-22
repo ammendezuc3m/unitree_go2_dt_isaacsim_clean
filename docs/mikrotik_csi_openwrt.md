@@ -75,7 +75,7 @@ For the current AP13/STA12/Raspi architecture, **manual SCP is not the normal pr
 ```text
 PC/Spark repository
   ├─ deployment/raspi/.../*.sh
-  │      -> Raspberry Pi /home/system/raspi_60ghz_demo/
+  │      -> Raspberry Pi ~/raspi_60ghz_demo/
   ├─ go2_dt/media/golden_test.mp4
   │      -> Raspberry Pi ~/raspi_60ghz_demo/golden_test.mp4
   └─ deployment/openwrt/scripts_csi_dog/*.sh
@@ -131,7 +131,7 @@ ssh root@192.168.1.12 'ping -I wlan0 -c 3 10.10.10.1'
 ssh root@192.168.1.13 'ping -I wlan0 -c 3 10.10.10.2'
 
 ping -c 3 172.16.13.100
-ssh nextnet@172.16.13.100 'ping -c 3 172.16.12.170'
+ssh ${RASPI_USER:-nextnet}@172.16.13.100 'ping -c 3 172.16.12.170'
 ```
 
 ---
@@ -257,7 +257,7 @@ It calls:
 The Raspi sender runs on the Raspberry Pi:
 
 ```text
-/home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh
+~/raspi_60ghz_demo/raspi_60ghz_sender.sh
 ```
 
 In the full pipeline, the PC/Spark scripts start it remotely through SSH. You can also run it manually on the Raspi for debugging.
@@ -296,7 +296,7 @@ IPERF_DURATION=3600
 Copy the MP4 to the Raspi:
 
 ```bash
-scp my_video.mp4 nextnet@172.16.13.100:~/raspi_60ghz_demo/my_video.mp4
+scp my_video.mp4 ${RASPI_USER:-nextnet}@172.16.13.100:~/raspi_60ghz_demo/my_video.mp4
 ```
 
 Run the sender with:
@@ -305,7 +305,7 @@ Run the sender with:
 SPARK_IP=172.16.12.170 \
 ENABLE_MP4=1 \
 MP4_FILE=~/raspi_60ghz_demo/my_video.mp4 \
-/home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh
+~/raspi_60ghz_demo/raspi_60ghz_sender.sh
 ```
 
 If only `MP4_FILE` changes, the PC/Spark receiver does not need to change because it still listens on UDP/RTP port `6002`.
