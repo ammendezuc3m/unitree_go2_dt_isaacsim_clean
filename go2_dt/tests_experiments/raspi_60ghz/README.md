@@ -31,7 +31,7 @@ Target path on the Raspberry Pi:
 Install from the PC/Spark:
 
 ```bash
-cd /home/nextnet/AlbertoDir
+cd <repo-root>
 
 ssh nextnet@172.16.13.100 'sudo mkdir -p /home/system/raspi_60ghz_demo && sudo chown -R nextnet:nextnet /home/system/raspi_60ghz_demo'
 
@@ -70,7 +70,7 @@ docs/mikrotik_csi_openwrt.md
 ## 3. Run
 
 ```bash
-cd /home/nextnet/AlbertoDir/go2_dt
+cd go2_dt
 
 RASPI_HOST=172.16.13.100 \
 RASPI_USER=nextnet \
