@@ -414,6 +414,7 @@ That `exec(...)` method is optional. The normal workflow is to open Isaac Sim, u
 ```bash
 cd /home/nextnet/AlbertoDir/go2_dt/ros2_ws
 source /opt/ros/jazzy/setup.bash
+source /home/nextnet/AlbertoDir/.venv/bin/activate
 source install/setup.bash
 
 export ROBOT_IP=192.168.12.1
