@@ -5,7 +5,7 @@ import time
 import threading
 from pathlib import Path
 
-GO2_ROOT = Path("/home/nextnet/AlbertoDir/go2_dt")
+GO2_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(GO2_ROOT))
 
 from video_file_tx_rx_yolo_usb import LocalYoloEngine, atomic_write_json, build_camera_state
