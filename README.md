@@ -329,11 +329,11 @@ ENABLE_CSI=0 \
 ### Step 4: Use your own MP4 on the Raspi
 
 ```bash
-scp my_video.mp4 nextnet@172.16.13.100:/home/nextnet/raspi_60ghz_demo/my_video.mp4
+scp my_video.mp4 nextnet@172.16.13.100:~/raspi_60ghz_demo/my_video.mp4
 ```
 
 ```bash
-MP4_FILE=/home/nextnet/raspi_60ghz_demo/my_video.mp4 \
+MP4_FILE=~/raspi_60ghz_demo/my_video.mp4 \
 ENABLE_MP4=1 \
 /home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh
 ```
