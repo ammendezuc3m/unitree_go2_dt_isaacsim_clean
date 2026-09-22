@@ -275,7 +275,7 @@ ssh root@192.168.1.13 'ping -I wlan0 -c 3 10.10.10.2'
 ### Step 3: Run the current full stack
 
 ```bash
-cd <repo-root>/go2_dt
+cd go2_dt
 ./run_full_demo_current.sh
 ```
 
@@ -284,7 +284,7 @@ This launches Isaac Sim, Go2 SDK, SLAM live visual, local USB YOLO, CSI predicto
 ### Step 4: Stop
 
 ```bash
-cd <repo-root>/go2_dt
+cd go2_dt
 ./stop_full_demo_current.sh
 ```
 
@@ -303,7 +303,7 @@ Use Figure 2. The Raspberry Pi sends:
 ### Step 2: Configure AP13/STA12/Raspi
 
 ```bash
-cd <repo-root>/go2_dt
+cd go2_dt
 
 RASPI_MGMT_HOST=10.39.251.226 \
 RASPI_USER=nextnet \
@@ -313,7 +313,7 @@ RASPI_USER=nextnet \
 ### Step 3: Run the Raspi/AP13/STA12 pipeline
 
 ```bash
-cd <repo-root>/go2_dt
+cd go2_dt
 
 RASPI_HOST=172.16.13.100 \
 RASPI_MGMT_HOST=10.39.251.226 \
@@ -343,7 +343,7 @@ If you change only `MP4_FILE`, the Spark receiver does not need to change. If yo
 ### Step 5: Stop
 
 ```bash
-cd <repo-root>/go2_dt
+cd go2_dt
 ./tests_experiments/raspi_60ghz_ap13_sta12/stop_ap13_sta12_pipeline.sh
 ```
 
@@ -420,10 +420,12 @@ The normal full launcher performs the same repository mount automatically.
 
 ## 11. Run Go2 SDK separately
 
+From the repository root:
+
 ```bash
-cd go2_dt/ros2_ws
 source /opt/ros/jazzy/setup.bash
 source .venv/bin/activate
+cd go2_dt/ros2_ws
 source install/setup.bash
 
 export ROBOT_IP=192.168.12.1
