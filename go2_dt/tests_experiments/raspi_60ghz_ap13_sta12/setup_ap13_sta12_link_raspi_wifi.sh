@@ -10,6 +10,7 @@ RASPI_MP4_SOURCE="${GO2_ROOT}/media/golden_test.mp4"
 
 
 RASPI_USER="${RASPI_USER:-nextnet}"
+RASPI_RUNTIME_DIR="${RASPI_RUNTIME_DIR:-/home/${RASPI_USER}/raspi_60ghz_demo}"
 
 detect_raspi_mgmt_host() {
   local candidates=(
@@ -459,7 +460,7 @@ ping -I wlan0 -c 5 -W 2 '${STA_WLAN_IP_PLAIN}' || true
   echo
   echo "=== Raspi sender check por WiFi ==="
   ssh_raspi "
-test -x /home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh && echo sender_OK || echo sender_MISSING
+test -x ${RASPI_RUNTIME_DIR}/raspi_60ghz_sender.sh && echo sender_OK || echo sender_MISSING
 test -e /dev/video0 && echo /dev/video0_OK || true
 test -e /dev/video4 && echo /dev/video4_OK || true
 "
@@ -518,25 +519,25 @@ provision_external_runtime() {
 
   raspi_sh "
 set -e
-sudo mkdir -p /home/system/raspi_60ghz_demo
-sudo chown -R ${RASPI_USER}:${RASPI_USER} /home/system/raspi_60ghz_demo
-mkdir -p /home/system/raspi_60ghz_demo/logs
+sudo mkdir -p ${RASPI_RUNTIME_DIR}
+sudo chown -R ${RASPI_USER}:${RASPI_USER} ${RASPI_RUNTIME_DIR}
+mkdir -p ${RASPI_RUNTIME_DIR}/logs
 mkdir -p /home/${RASPI_USER}/raspi_60ghz_demo
 "
 
-  deploy_file_to_raspi "${DEPLOY_RASPI_DIR}/raspi_60ghz_sender.sh" "/home/system/raspi_60ghz_demo/raspi_60ghz_sender.sh"
-  deploy_file_to_raspi "${DEPLOY_RASPI_DIR}/iperf_client_loop.sh" "/home/system/raspi_60ghz_demo/iperf_client_loop.sh"
-  deploy_file_to_raspi "${DEPLOY_RASPI_DIR}/mp4_loop_tx_6002.sh" "/home/system/raspi_60ghz_demo/mp4_loop_tx_6002.sh"
-  deploy_file_to_raspi "${RASPI_MP4_SOURCE}" "/home/${RASPI_USER}/raspi_60ghz_demo/golden_test.mp4"
+  deploy_file_to_raspi "${DEPLOY_RASPI_DIR}/raspi_60ghz_sender.sh" "${RASPI_RUNTIME_DIR}/raspi_60ghz_sender.sh"
+  deploy_file_to_raspi "${DEPLOY_RASPI_DIR}/iperf_client_loop.sh" "${RASPI_RUNTIME_DIR}/iperf_client_loop.sh"
+  deploy_file_to_raspi "${DEPLOY_RASPI_DIR}/mp4_loop_tx_6002.sh" "${RASPI_RUNTIME_DIR}/mp4_loop_tx_6002.sh"
+  deploy_file_to_raspi "${RASPI_MP4_SOURCE}" "${RASPI_RUNTIME_DIR}/golden_test.mp4"
 
   raspi_sh "
 set -e
-chmod +x /home/system/raspi_60ghz_demo/*.sh
-test -s /home/${RASPI_USER}/raspi_60ghz_demo/golden_test.mp4
+chmod +x ${RASPI_RUNTIME_DIR}/*.sh
+test -s ${RASPI_RUNTIME_DIR}/golden_test.mp4
 command -v gst-launch-1.0 >/dev/null
 command -v iperf3 >/dev/null
 echo '[SETUP] Raspi runtime files OK'
-ls -lh /home/system/raspi_60ghz_demo/*.sh /home/${RASPI_USER}/raspi_60ghz_demo/golden_test.mp4
+ls -lh ${RASPI_RUNTIME_DIR}/*.sh ${RASPI_RUNTIME_DIR}/golden_test.mp4
 "
 
   # STA12 is behind the Raspberry Pi in this topology, so deploy through the
