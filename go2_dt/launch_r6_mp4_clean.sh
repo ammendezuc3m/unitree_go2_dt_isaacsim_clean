@@ -47,7 +47,7 @@ fi
 export RASPI_MGMT_HOST RASPI_USER
 echo "[AUTO] Raspi detectada: ${RASPI_USER}@${RASPI_MGMT_HOST}"
 SPARK_IP="${SPARK_IP:-172.16.12.170}"
-MP4_FILE="${MP4_FILE:-/home/nextnet/raspi_60ghz_demo/golden_test.mp4}"
+MP4_FILE="${MP4_FILE:-/home/${RASPI_USER}/raspi_60ghz_demo/golden_test.mp4}"
 MP4_PORT="${MP4_PORT:-6002}"
 
 echo "[R6-SIMPLE] start"
@@ -78,5 +78,5 @@ ssh_try "${RASPI_HOST}" "
 SPARK_IP='${SPARK_IP}' \
 PORT='${MP4_PORT}' \
 MP4_FILE='${MP4_FILE}' \
-/home/nextnet/raspi_60ghz_demo/tx_mp4_simple_loop_6002.sh
+/home/${RASPI_USER}/raspi_60ghz_demo/tx_mp4_simple_loop_6002.sh
 "
