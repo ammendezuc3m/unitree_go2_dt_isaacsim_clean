@@ -25,7 +25,8 @@ The project supports two main execution architectures:
 | Main demo scripts and module-by-module execution | [`go2_dt/README.md`](go2_dt/README.md) |
 | ROS 2, DDS, Go2 SDK, patrol and Isaac sync | [`go2_dt/ros2_ws/README.md`](go2_dt/ros2_ws/README.md) |
 | Required JSON fields and how to add a new sensor | [`docs/json_contracts.md`](docs/json_contracts.md) |
-| MikroTik/OpenWrt CSI, AP13/STA12 and Raspi sender | [`docs/mikrotik_csi_openwrt.md`](docs/mikrotik_csi_openwrt.md) |
+| External-device provisioning (MikroTik + Raspi) | [`deployment/README.md`](deployment/README.md) |
+| MikroTik/OpenWrt CSI details, AP13/STA12 and Raspi sender | [`docs/mikrotik_csi_openwrt.md`](docs/mikrotik_csi_openwrt.md) |
 | Official scripts vs debug/legacy scripts | [`docs/scripts_overview.md`](docs/scripts_overview.md) |
 | Python/system dependencies | [`requirements/README.md`](requirements/README.md) |
 | Isaac assets and expected prims | [`go2_assets/README.md`](go2_assets/README.md) |
@@ -44,9 +45,12 @@ The project supports two main execution architectures:
 │   └── images/
 ├── requirements/
 │   ├── README.md
+│   ├── requirements-host-all.txt
 │   ├── requirements-host.txt
 │   ├── requirements-csi.txt
-│   └── requirements-yolo.txt
+│   ├── requirements-yolo.txt
+│   ├── setup_host_env.sh
+│   └── check_lfs_assets.sh
 ├── go2_assets/
 │   └── README.md
 └── go2_dt/
@@ -158,7 +162,7 @@ The detailed package installation is in [`requirements/README.md`](requirements/
 
 ## 6. Requirements
 
-### 5.1 Host / Spark / main PC
+### 6.1 Host / Spark / main PC
 
 Validated target:
 
@@ -187,7 +191,7 @@ This installs and validates the dependencies required by the current host runtim
 
 The exact system packages, ROS packages, Python packages and validation procedure are documented in [`requirements/README.md`](requirements/README.md).
 
-### 5.2 Robot
+### 6.2 Robot
 
 Default:
 
@@ -196,7 +200,7 @@ ROBOT_IP=192.168.12.1
 CONN_TYPE=webrtc
 ```
 
-### 5.3 MikroTik/OpenWrt
+### 6.3 MikroTik/OpenWrt
 
 - AP13 management IP: `192.168.1.13`.
 - STA12 management IP: `192.168.1.12`.
@@ -208,7 +212,7 @@ CONN_TYPE=webrtc
 
 For the exact first-time Ethernet provisioning procedure, reverse-SSH prerequisite and manual validation commands, see [`deployment/README.md`](deployment/README.md).
 
-### 5.4 Optional Raspi mode
+### 6.4 Optional Raspi mode
 
 - Raspberry Pi reachable by SSH.
 - Raspi demo IP commonly `172.16.13.100`.
